@@ -1,11 +1,3 @@
-<header class="top-bar">
-  @if (!auth.isAuthenticated()) {
-    <button routerLink="/login">Login</button>
-  } @else {
-    <button (click)="auth.clearAccessToken()">Logout</button>
-  }
-</header>
-
 <section class="hero-background">
 
   <!-- Content ~1/3 from the top -->

@@ -1,0 +1,24 @@
+<header class="header">
+  <div class="header-content">
+
+    <div class="logo">
+      HomeBudget
+    </div>
+
+    <nav>
+      <a routerLink="/">Home</a>
+
+      <a *ngIf="auth.isAuthenticated()" routerLink="/documents">Documents</a>
+      <a *ngIf="auth.isAuthenticated()" routerLink="/accounts">Accounts</a>
+    </nav>
+
+    <div class="actions">
+      @if (auth.isAuthenticated()) {
+        <button (click)="auth.clearAccessToken()">Logout</button>
+      } @else {
+        <button routerLink="/login">Login</button>
+      }      
+    </div>
+
+  </div>
+</header>
