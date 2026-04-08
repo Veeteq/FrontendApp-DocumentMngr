@@ -1,13 +1,118 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;1,100;1,400;1,600&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css');
-*{
-    margin: 0px;
-    padding: 0px;
-    box-sizing: border-box;
+@import 'tailwindcss';
+
+@theme {
+  /* Core app colors */
+  --app-bg: rgb(53, 94, 59);            /* dark green */
+  --app-text: rgb(236, 255, 220);       /* light green text */
+  --app-border: rgba(236,255,220,0.25); /* light green border */
+
+  /* UI surfaces */
+  --app-panel: rgba(53, 94, 59, 0.40);
+  --app-panel-soft: rgba(53, 94, 59, 0.65);
+
+  /* Borders & separators */
+  --app-border: rgba(236, 255, 220, 0.25);
+
+  /* Interactive states */
+  --app-hover: rgba(236, 255, 220, 0.15);
+  --app-hover-strong: rgba(236, 255, 220, 0.25);
 }
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #FBFCFC;
+    background-color: rgb(193, 225, 193, 0.15);
+}
+
+/* Sidebar item base */
+.sidebar-item {
+  @apply
+    relative
+    flex
+    items-center
+    gap-2
+    pt-3
+    pb-1
+    px-2
+    opacity-80
+    transition
+    duration-200
+    cursor-pointer
+    border-b
+    border-white/20
+}
+
+/* Hover */
+.sidebar-item:hover {
+  @apply opacity-100;
+}
+
+/* Icon */
+.sidebar-item .icon {
+  @apply text-lg w-6 text-center;
+}
+
+/* Label */
+.sidebar-item .label {
+  @apply whitespace-nowrap;
+}
+
+/* Active indicator bar */
+.sidebar-item .indicator {
+  @apply
+    absolute
+    left-0
+    top-0
+    h-full
+    w-1
+    bg-transparent
+    rounded-r
+    transition-all
+    duration-300;
+}
+
+/* Active state */
+.sidebar-item.active {
+  @apply font-semibold opacity-100;
+}
+
+.sidebar-item.active .indicator {
+  @apply bg-white;
+}
+
+/* Header navigation link */
+.nav-link {
+  @apply
+    relative
+    opacity-90
+    transition
+    duration-200;
+}
+
+/* Hover */
+.nav-link:hover {
+  opacity: 1;
+}
+
+/* Underline (animated) */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  background: var(--app-fg);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Active route underline */
+.nav-link.active::after {
+  opacity: 1;
+  transform: scaleX(1);
 }

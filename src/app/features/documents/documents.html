@@ -1,0 +1,22 @@
+<div class="layout">
+
+  <aside class="sidebar">
+    <h2>Documents</h2>
+
+    <nav>
+      <a routerLink="details/5" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        📄 All Documents
+      </a>
+
+      <a routerLink="upload" routerLinkActive="active">
+        ⬆️ Upload Document
+      </a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>
+``
