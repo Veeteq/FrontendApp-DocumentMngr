@@ -1,0 +1,46 @@
+.layout {
+  display: flex;
+  height: calc(100vh - 60px); /* header height */
+  margin-top: 60px; /* header offset */
+}
+
+/* Left Sidebar */
+.sidebar {
+  width: 260px;
+  background: rgba(0,0,0,0.4);
+  border-right: 1px solid var(--panel-border);
+  padding: 25px;
+  color: white;
+  backdrop-filter: blur(4px);
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+}
+
+.sidebar nav a {
+  display: block;
+  padding: 10px 0;
+  color: var(--color-white);
+  text-decoration: none;
+  opacity: 0.9;
+  transition: opacity .25s ease;
+}
+
+.sidebar nav a:hover {
+  opacity: 1;
+}
+
+.sidebar nav a.active {
+  font-weight: 600;
+}
+
+/* Right content area */
+.content {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
+  color: white;
+  backdrop-filter: blur(2px);
+}

@@ -1,3 +1,40 @@
+<header class=" fixed top-0 left-0 z-50 w-full h-[60px] bg-[var(--app-panel)] backdrop-blur border-b border-[var(--app-border)]">
+  <div class=" h-full flex items-center justify-between px-6 text-[var(--app-text)]">
+
+    <!-- Logo -->
+    <div class="logo text-lg font-semibold tracking-wide">
+      HomeBudget
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex items-center gap-6 text-sm font-medium">
+
+      <a routerLink="/" class="nav-link">Home</a>
+
+      @if (auth.isAuthenticated()) {
+        <a routerLink="/documents" class="nav-link">Documents</a>
+        <a routerLink="/accounts" class="nav-link">Accounts</a>
+      }
+    </nav>
+
+    <!-- Actions -->
+    <div class="actions flex items-center gap-3">
+
+      @if (auth.isAuthenticated()) {
+        <button (click)="auth.clearAccessToken()" class="px-4 py-1.5 rounded bg-[rgba(236,255,220,0.15)] hover:bg-[rgba(236,255,220,0.25)] text-sm transition">
+          Logout
+        </button>
+      } @else {
+        <button routerLink="/login" class=" px-4 py-1.5 rounded bg-[rgba(236,255,220,0.15)] hover:bg-[rgba(236,255,220,0.25)] text-sm transition">
+          Login
+        </button>
+      }
+
+    </div>
+  </div>
+</header>
+
+<!--
 <header class="header">
   <div class="header-content">
 
@@ -8,8 +45,10 @@
     <nav>
       <a routerLink="/">Home</a>
 
-      <a *ngIf="auth.isAuthenticated()" routerLink="/documents">Documents</a>
-      <a *ngIf="auth.isAuthenticated()" routerLink="/accounts">Accounts</a>
+      @if (auth.isAuthenticated()) {
+        <a routerLink="/documents">Documents</a>
+        <a routerLink="/accounts">Accounts</a>
+      }
     </nav>
 
     <div class="actions">
@@ -22,3 +61,4 @@
 
   </div>
 </header>
+-->

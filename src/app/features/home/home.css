@@ -90,4 +90,9 @@
   text-align: center;
   border: 2px solid #eee;
   border-radius: 6px;
+  cursor: pointer;  
+}
+
+.feature:hover {
+  opacity: 0.85;
 }

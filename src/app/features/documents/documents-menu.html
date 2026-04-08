@@ -1,0 +1,23 @@
+<div class="min-h-screen pt-[60px] text-[var(--app-text)]">
+  <div class="flex h-[calc(100vh-60px)]">
+
+    <aside class="w-64 shrink-0 bg-[var(--app-panel)] border-r border-[var(--app-border)] backdrop-blur p-6">
+      
+      <nav class="flex flex-col">
+        @for (sidebarItem of sidebar; track sidebarItem.route) {
+          <a [routerLink]="sidebarItem.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: sidebarItem.exact ?? false }" class="sidebar-item">            
+            <span class="icon">{{ sidebarItem.icon }}</span>
+            <span class="label">{{ sidebarItem.label }}</span>
+            <span class="indicator"></span>
+          </a>
+        }
+      </nav>
+    </aside>
+
+    <!-- Right content -->
+    <main class=" flex-1 overflow-y-auto p-8 backdrop-blur-sm text-[rgb(53, 94, 59)]">
+      <router-outlet />
+    </main>
+
+  </div>
+</div>
