@@ -1,7 +1,7 @@
-<div class="min-h-screen pt-[60px] text-[var(--app-text)]">
+<div class="min-h-screen pt-[60px]">
   <div class="flex h-[calc(100vh-60px)]">
 
-    <aside class="w-64 shrink-0 bg-[var(--app-panel)] border-r border-[var(--app-border)] backdrop-blur p-6">
+    <aside class="w-64 shrink-0 bg-[var(--app-panel)] border-r border-[var(--app-border)] text-[var(--app-text)] backdrop-blur p-6">
       
       <nav class="flex flex-col">
         @for (sidebarItem of sidebar; track sidebarItem.route) {
@@ -15,7 +15,7 @@
     </aside>
 
     <!-- Right content -->
-    <main class=" flex-1 overflow-y-auto p-8 backdrop-blur-sm text-[rgb(53, 94, 59)]">
+    <main class=" flex-1 overflow-y-auto p-4 backdrop-blur-sm text-[rgb(53,94,59)]">      
       <router-outlet />
     </main>
 

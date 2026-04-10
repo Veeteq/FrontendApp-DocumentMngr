@@ -3,6 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { tap } from "rxjs";
 import { authStore } from "./auth.store";
 import { LoginResponse } from "../../model/login-response";
+import { environment } from "../../../environments/environment";
 
 @Injectable({ 
   providedIn: 'root' 
@@ -10,11 +11,10 @@ import { LoginResponse } from "../../model/login-response";
 export class AuthService {
 
   private http: HttpClient = inject(HttpClient);
-  private baseUrl = 'http://localhost:8282/api/auth';
+  private readonly baseUrl = `${environment.authApiUrl}/login`;
 
-  
   login(username: string, password: string) {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, { username, password })
+    return this.http.post<LoginResponse>(`${this.baseUrl}`, { username, password })
     .pipe(
       tap(data => {
         authStore.setAccessToken(data.token);
