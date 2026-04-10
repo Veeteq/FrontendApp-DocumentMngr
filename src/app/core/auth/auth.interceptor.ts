@@ -1,24 +1,20 @@
-import { HttpHandler, HttpRequest } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { authStore } from './auth.store';
 
-export const authInterceptor = () => {
-  return {
-    intercept(req: HttpRequest<any>, next: HttpHandler) {
-      // Skip attaching token for login endpoint
-      if (req.url.includes('/auth/login')) {
-        return next.handle(req);
-      }
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // Skip attaching token for login endpoint
+  if (req.url.includes('/auth/login')) {
+    return next(req);
+  }
 
-      const token = authStore.accessToken();
+  const token = authStore.accessToken();
 
-      if (token) {
-        req = req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
-      return next.handle(req);
-    },
-  };
+  if (token) {
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+  return next(req);
 };

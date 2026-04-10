@@ -1,1 +1,59 @@
-<p>list works!</p>
+<h1 class="text-xl font-semibold mb-4 text-green-800">
+  All Documents
+</h1>
+
+@if (loading()) {
+  <p>Loading documents…</p>
+}
+
+@if (error()) {
+  <p class="text-red-500">
+    {{ error() }}
+  </p>
+}
+
+@if (!loading() && result()) {
+  <div class="overflow-x-auto border rounded">
+    
+    <table class="min-w-full border-collapse text-sm">      
+      <!-- Table header -->
+      <thead class="bg-[var(--app-panel)] text-[var(--app-fg)]">
+        <tr>
+          <th class="px-2 py-2 text-left border-b">Date</th>
+          <th class="px-2 py-2 text-left border-b">Name</th>
+          <th class="px-2 py-2 text-left border-b">Type</th>
+          <th class="px-2 py-2 text-left border-b">Account</th>
+          <th class="px-2 py-2 text-left border-b">Counterparty</th>
+          <th class="px-2 py-2 text-right border-b">Amount</th>
+        </tr>
+      </thead>
+
+      <!-- Table body -->
+      <tbody>
+        @for (doc of result()!.data; track doc.documentId) {
+          <tr class="hover:bg-[var(--app-hover)] transition">
+            <td class="px-3 py-2 border-b">
+              {{ doc.documentDate }}
+            </td>
+            <td class="px-3 py-2 border-b font-medium">
+              {{ doc.documentName }}
+            </td>
+            <td class="px-3 py-2 border-b">
+              {{ doc.documentType }}
+            </td>
+            <td class="px-3 py-2 border-b">
+              {{ doc.account.accountName }}
+            </td>
+            <td class="px-3 py-2 border-b">
+              {{ doc.counterparty?.counterpartyName ?? '—' }}
+            </td>
+            <td class="px-3 py-2 border-b text-right font-semibold">
+              {{ doc.documentAmount }}
+              {{ doc.currencyCode }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
