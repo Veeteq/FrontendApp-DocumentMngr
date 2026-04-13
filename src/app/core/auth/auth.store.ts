@@ -1,5 +1,8 @@
-import { computed, signal } from "@angular/core";
+import { computed, Injectable, signal } from "@angular/core";
 
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthStore {
   private readonly _accessToken = signal<string | null>(localStorage.getItem('accessToken'));
   private readonly _refreshToken = signal(localStorage.getItem('refreshToken'));
@@ -36,6 +39,3 @@ export class AuthStore {
 
 
 }
-
-// Provide store as a global singleton
-export const authStore = new AuthStore();

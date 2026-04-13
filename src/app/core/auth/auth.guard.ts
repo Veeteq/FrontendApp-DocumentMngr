@@ -1,8 +1,9 @@
 import { inject } from "@angular/core";
-import { authStore } from "./auth.store";
+import { AuthStore } from "./auth.store";
 import { Router } from "@angular/router";
 
-export const authGuard = () => {  
+export const authGuard = () => {
+  const authStore = inject(AuthStore);  
   if (authStore.isAuthenticated()) return true;
 
   return inject(Router).parseUrl('/login');
