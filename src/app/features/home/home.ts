@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { authStore } from '../../core/auth/auth.store';
+import { Component, inject } from '@angular/core';
+import { AuthStore } from '../../core/auth/auth.store';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -12,5 +12,5 @@ import { RouterModule } from '@angular/router';
   styleUrl: './home.css',
 })
 export class Home {
-  auth = authStore;
+  auth = inject(AuthStore);
 }
