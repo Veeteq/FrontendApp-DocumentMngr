@@ -5,12 +5,19 @@ import { computed, Injectable, signal } from "@angular/core";
 })
 export class AuthStore {
   private readonly _accessToken = signal<string | null>(localStorage.getItem('accessToken'));
-  private readonly _refreshToken = signal(localStorage.getItem('refreshToken'));
-  private readonly _expiresIn = signal<number | null>(null);
+  private readonly _expiresAt = signal<string | null>(localStorage.getItem('expiresAt'));
 
-  readonly isAuthenticated = computed(() => !!this._accessToken());
+  readonly isAuthenticated = computed(() => {
+    const token = this._accessToken();
+    const expiresAt = this._expiresAt();
 
-  
+    if (!token || !expiresAt) {
+      return false;
+    }
+
+    return new Date(expiresAt).getTime() > Date.now();
+  });
+
   // ---- Getters ----
   accessToken = () => this._accessToken();
   
@@ -20,21 +27,17 @@ export class AuthStore {
     localStorage.setItem('accessToken', token);
   }
 
-  setRefreshToken(token: string) {
-    this._refreshToken.set(token);
-    localStorage.setItem('refreshToken', token);
-  }
-
-  setExpiresIn(expiresIn: number) {
-    this._expiresIn.set(expiresIn);
-  }
+  
+  setExpiresAt(expiresAt: string) {
+    this._expiresAt.set(expiresAt);
+    localStorage.setItem('expiresAt', expiresAt);
+}
 
   clearAccessToken() {
     this._accessToken.set(null);
-    this._refreshToken.set(null);
-    this._expiresIn.set(null);
+    this._expiresAt.set(null);
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('expiresAt');
   }
 
 

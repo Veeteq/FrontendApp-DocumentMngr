@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { AuthStore } from '../../core/auth/auth.store';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -12,4 +13,11 @@ import { RouterModule } from '@angular/router';
 })
 export class Header {
   auth = inject(AuthStore);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  logout() {
+    this.authService.logout();
+  }
+
 }

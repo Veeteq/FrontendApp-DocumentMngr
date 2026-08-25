@@ -4,6 +4,7 @@ import { tap } from "rxjs";
 import { AuthStore } from "./auth.store";
 import { LoginResponse } from "../../model/login-response";
 import { environment } from "../../../environments/environment";
+import { Router } from "@angular/router";
 
 @Injectable({ 
   providedIn: 'root' 
@@ -12,6 +13,7 @@ export class AuthService {
 
   private authStore: AuthStore = inject(AuthStore);
   private http: HttpClient = inject(HttpClient);
+  private router = inject(Router);
   private readonly baseUrl = `${environment.authApiUrl}/login`;
 
   login(username: string, password: string) {
@@ -19,12 +21,14 @@ export class AuthService {
     .pipe(
       tap(data => {
         this.authStore.setAccessToken(data.token);
+        this.authStore.setExpiresAt(data.expiresAt);
       })
     );
   }
 
   logout() {
     this.authStore.clearAccessToken();
+    this.router.navigate(['/login']);
   }
 
 }

@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -22,11 +23,16 @@ export class Login {
     this.loading.set(true);
     this.error.set(null);
 
-    this.auth.login(this.username, this.password).subscribe({
-      next: () => this.router.navigateByUrl('/'),
+    this.auth.login(this.username, this.password)
+    .pipe(
+      finalize(() => this.loading.set(false))
+    )
+    .subscribe({
+      next: () => {
+        this.router.navigateByUrl('/');
+      },
       error: () => {
         this.error.set('Invalid credentials');
-        this.loading.set(false);
       }
     });
   }
