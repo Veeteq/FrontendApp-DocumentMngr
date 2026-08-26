@@ -5,6 +5,7 @@ import { AuthStore } from "./auth.store";
 import { LoginResponse } from "../../model/login-response";
 import { environment } from "../../../environments/environment";
 import { Router } from "@angular/router";
+import { RefreshTokenResponse } from "../../model/refresh-token-response";
 
 @Injectable({ 
   providedIn: 'root' 
@@ -29,6 +30,20 @@ export class AuthService {
   logout() {
     this.authStore.clearAccessToken();
     this.router.navigate(['/login']);
+  }
+
+  refreshToken() {
+    return this.http.post<RefreshTokenResponse>(`${this.baseUrl}/refresh`,
+      {}, 
+      {
+        withCredentials: true
+      })
+    .pipe(
+      tap(data => {
+        this.authStore.setAccessToken(data.token);
+        this.authStore.setExpiresAt(data.expiresAt);
+      })
+    );
   }
 
 }
