@@ -9,11 +9,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
   // Skip attaching token for login endpoint
-  if (req.url.includes('/auth/login')) {
+  if (req.url.includes('/auth/login') ||
+      req.url.includes('/auth/refresh')) {
     return next(req);
   }
 
   const token = authStore.accessToken();
+
+  if (!token) {
+    authService.logout();
+    return throwError(() => new Error('No token after refresh'));
+  }
 
   if (token) {
     req = req.clone({
