@@ -41,7 +41,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           if (!newToken) {
             return next(req);
           }
-          
+
           const retryReq = req.clone({
             setHeaders: {
               Authorization: `Bearer ${newToken}`,
