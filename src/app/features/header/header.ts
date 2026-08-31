@@ -17,7 +17,8 @@ export class Header {
   private router = inject(Router);
 
   logout() {
-    this.authService.logout();
+    this.authService.logout().subscribe({
+      error: err => console.error('Logout failed', err)
+    });
   }
-
 }
