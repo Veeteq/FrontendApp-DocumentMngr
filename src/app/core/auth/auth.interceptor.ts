@@ -17,8 +17,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = authStore.accessToken();
 
   if (!token) {
-    authService.logout();
-    return throwError(() => new Error('No token after refresh'));
+    return next(req);
   }
 
   if (token) {

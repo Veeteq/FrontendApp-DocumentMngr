@@ -32,18 +32,21 @@ export class AuthService {
       );
   }
 
-  logout() : Observable<Object> {
+  logout() {
     console.log('2. Logging out...');
     return this.http.post(`${this.baseUrl}/logout`,
-        {},
-        { withCredentials: true },
-      )
+      {},
+      { withCredentials: true },
+    )
       .pipe(
         finalize(() => {
           this.authStore.clearAccessToken();
           this.router.navigate(['/login']);
         }),
-      );
+      )
+      .subscribe({
+        error: err => console.error('Logout failed', err)
+      });
   }
 
   //regular refresh token request, which will be called by the interceptor when a 401 is received

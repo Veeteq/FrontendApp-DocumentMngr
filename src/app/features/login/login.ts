@@ -16,7 +16,7 @@ export class Login {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  username: string = 'jmclane';
+  username: string = '';
   password: string = '';
 
   submit() {
