@@ -34,7 +34,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return authService.refreshToken().pipe(
+      return authService.refreshTokenShared().pipe(
         switchMap(() => {
           const newToken = authStore.accessToken();
 
