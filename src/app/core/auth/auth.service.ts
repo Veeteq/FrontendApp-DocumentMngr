@@ -65,8 +65,8 @@ export class AuthService {
   }
 
   //optimized refresh token request to Prevent Refresh Storms (Concurrent 401 Requests)
-  refreshTokenShared() {
-    if (this.refreshInProgress) {
+  refreshTokenShared() : Observable<RefreshTokenResponse>{
+    if (this.refreshInProgress && this.refreshRequest$) {
       console.log('Using running refresh request');
       return this.refreshRequest$;
     }
