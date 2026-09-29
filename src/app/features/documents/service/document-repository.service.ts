@@ -1,5 +1,6 @@
 import { Injectable, signal } from "@angular/core";
 import { Document } from "../model/document.model";
+import { DocumentItem } from "../model/document-item.model";
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,6 @@ export class DocumentRepositoryService {
 
    /** Public read-only access to the draft */
   readonly draft = this._draft.asReadonly();
-
 
   /**
    * Initialize a new empty document draft.
@@ -36,11 +36,13 @@ export class DocumentRepositoryService {
       exchangeRate: base.exchangeRate ?? 1,
 
       documentItems: []
-    }
-
-     this._draft.set(document);
+    }    
+    this._draft.set(document);
   }
 
+  initDocumentItem() {
+  }
+  
   /**
    * Update top-level document fields.
    * Does NOT allow replacing entire document.

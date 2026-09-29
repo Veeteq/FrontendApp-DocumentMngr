@@ -8,7 +8,9 @@ export const documentsRoutes: Routes = [
       { path: '', redirectTo: 'list', pathMatch: 'full' },
       { path: 'details/:id', loadComponent: () => import('../documents/list/list').then(m => m.List) },
       { path: 'upload', loadComponent: () => import('../documents/list/list').then(m => m.List) },
-      { path: 'new', loadComponent: () => import('../documents/list/list').then(m => m.List) },
+      
+      { path: 'new', loadComponent: () => import('./create/document-create').then(m => m.DocumentCreate) },
+
       { path: 'list', loadComponent: () => import('../documents/list/list').then(m => m.List) }
     ]
   }

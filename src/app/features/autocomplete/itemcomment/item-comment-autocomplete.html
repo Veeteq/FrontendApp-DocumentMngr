@@ -1,0 +1,31 @@
+<div class="relative">
+
+  <label class="block text-sm font-medium mb-1">Comment</label>
+
+  <input type="text" role="combobox" class="w-full border rounded px-3 py-0.5" placeholder="Comment"
+  aria-autocomplete="list" [aria-expanded]="opened()" aria-haspopup="listbox" aria-controls="comments-list"
+  [ngModel]="searchText()" 
+  (ngModelChange)="onInput($event)" 
+  (blur)="hideDropdown()"
+  (keydown)="onKeyDown($event)"/>
+
+  @if (loading()) {
+    <div class="absolute z-10 w-full bg-white rounded mt-1 p-2 text-sm">Searching...</div>
+  }
+
+  @if (opened()) {
+    <div class="absolute z-50 w-full bg-white border rounded mt-1 shadow max-h-60 overflow-auto">
+      @if (documentComments().length === 0) {
+        <div class="px-3 py-2 text-sm text-gray-500 italic">Nothing found</div>
+      }
+
+      @for (comment of documentComments(); track comment; let index = $index) {
+        <button type="button" class="block w-full text-left px-3 py-0.5 text-sm hover:bg-gray-100 border-b border-gray-100" 
+        [class.bg-green-100]="highlightedIndex() === index"
+        (click)="selectComment(comment)">
+          {{ comment }}
+        </button>
+      }
+    </div>
+  }
+</div>
