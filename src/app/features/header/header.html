@@ -1,5 +1,5 @@
-<header class=" fixed top-0 left-0 z-50 w-full h-[60px] bg-[var(--app-panel)] backdrop-blur border-b border-[var(--app-border)]">
-  <div class=" h-full flex items-center justify-between px-6 text-[var(--app-text)]">
+<header class=" fixed top-0 left-0 z-50 w-full h-15 bg-(--app-panel) backdrop-blur border-b border-(--app-border)">
+  <div class=" h-full flex items-center justify-between px-6 text-(--app-text)">
 
     <!-- Logo -->
     <div class="logo text-lg font-semibold tracking-wide">
@@ -21,7 +21,7 @@
     <div class="actions flex items-center gap-3">
 
       @if (auth.isAuthenticated()) {
-        <button (click)="auth.clearAccessToken()" class="px-4 py-1.5 rounded bg-[rgba(236,255,220,0.15)] hover:bg-[rgba(236,255,220,0.25)] text-sm transition">
+        <button (click)="logout()" class="px-4 py-1.5 rounded bg-[rgba(236,255,220,0.15)] hover:bg-[rgba(236,255,220,0.25)] text-sm transition">
           Logout
         </button>
       } @else {
