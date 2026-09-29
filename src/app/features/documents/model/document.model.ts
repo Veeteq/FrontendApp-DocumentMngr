@@ -10,7 +10,7 @@ export interface Document {
   documentComment?: string;
   invoiceNumber?: string;
 
-  account: Account;
+  account?: Account
   targetAccount?: Account;
 
   documentAmount?: number;
@@ -19,7 +19,7 @@ export interface Document {
 
   paymentMethod: string;
   currencyCode: string;
-  exchangeRate?: number;
+  exchangeRate: number;
 
   documentItems: DocumentItem[];
   documentItemsCount?: number;

@@ -1,0 +1,153 @@
+<h1 class="text-xl font-semibold mb-4 text-green-800">
+  New Document
+</h1>
+
+@if (validationErrors().length > 0) {
+  <div class="mb-4 rounded border border-red-300 bg-red-50 p-3">
+    <div class="font-semibold text-red-700 mb-2">
+      Validation errors
+    </div>
+    <ul class="list-disc ml-5 text-red-700">
+      @for (error of validationErrors(); track error) {
+        <li>{{ error }}</li>
+      }
+    </ul>
+  </div>
+}
+
+<form class="max-w-4xl bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Document Date</label>
+      <input type="date" name="documentDate" class="w-full border rounded px-3 py-0.5" required
+      [ngModel]="draft()?.documentDate" (ngModelChange)="updateDraft({ documentDate: $event })"/>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Document Type</label>
+      <select name="documentType" class="w-full border rounded px-3 py-0.5" required
+      [ngModel]="draft()?.documentType" (ngModelChange)="updateDraft({ documentType: $event })">
+        <option value="">Select type</option>
+        @for (documentType of documentTypes; track documentType) {
+          <option value="{{ documentType }}">{{ documentType }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>      
+      <app-document-name-autocomplete (nameSelected)="onDocumentNameSelected($event)" (nameChanged)="onDocumentNameChanged($event)"/>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Invoice Number</label>
+      <input type="text" name="invoiceNumber" class="w-full border rounded px-3 py-0.5 disabled:bg-gray-100 disabled:text-gray-400" placeholder="Invoice number"
+      [ngModel]="draft()?.invoiceNumber" (ngModelChange)="updateDraft({ invoiceNumber: $event })"
+      [disabled]="!isInvoiceNumberEnabled()"
+      [required]="isInvoiceNumberEnabled()"/>
+    </div>
+  </div>
+  
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <app-account-autocomplete (accountSelected)="onAccountSelected($event)"/>
+    </div>
+    <div class="md:col-span-2">
+      <app-counterparty-autocomplete (counterpartySelected)="onCounterpartySelected($event)" [disabled]="!isCounterpartyEnabled()"/>
+    </div>      
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Item Type</label>
+      <select name="documentItemType" class="w-full border rounded px-3 py-0.5" required
+        [ngModel]="draft()?.documentItems?.[0]?.itemType" (ngModelChange)="updateDocumentItem({ itemType: $event })">
+        <option value="">Select type</option>
+        <option value="EXP">Expense</option>
+        <option value="INC">Income</option>
+      </select>
+    </div>
+  
+    <div class="col-span-2">
+      <app-item-autocomplete (itemSelected)="onItemSelected($event)"/>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Count</label>
+      <input type="text" inputmode="decimal" min="0.001" step="0.001" name="documentItemCount" class="w-full border rounded px-3 py-0.5 text-right"
+        [ngModel]="itemQuantityInput" (ngModelChange)="onItemQuantityChange($event)" />
+    </div>
+  
+    <div>
+      <label class="block text-sm font-medium mb-1">Price</label>
+      <input type="text" inputmode="decimal" min="0.01" step="0.01" name="documentItemPrice" class="w-full border rounded px-3 py-0.5 text-right"
+        [ngModel]="itemPriceInput" (ngModelChange)="onItemPriceChange($event)" />
+    </div>
+  
+    <div>
+      <label class="block text-sm font-medium mb-1">Total</label>
+      <input class="w-full border rounded px-3 py-0.5 bg-gray-100 text-right" readonly [value]="getOriginalTotal()" />
+    </div>
+  </div>
+
+  <div>
+    <app-item-comment-autocomplete (commentSelected)="onCommentSelected($event)" (commentChanged)="onCommentChanged($event)"/>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Payment Method</label>
+      <select name="paymentMethod" class="w-full border rounded px-3 py-0.5" required
+      [ngModel]="draft()?.paymentMethod" (ngModelChange)="updateDraft({ paymentMethod: $event })">
+        <option value="">Select payment method</option>
+        @for (paymentMethod of paymentMethods; track paymentMethod) {
+          <option value="{{ paymentMethod }}">{{ paymentMethod }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Currency</label>      
+      <select name="currencyCode" class="w-full border rounded px-3 py-0.5" required
+      [ngModel]="draft()?.currencyCode" (ngModelChange)="onCurrencyChange($event)">
+        <option value="">Select currency</option>
+        @for (currency of currencies; track currency) {
+          <option value="{{ currency }}">{{ currency }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Exchange Rate</label>
+      <input type="number" step="0.000001" name="exchangeRate" class="w-full border rounded px-3 py-0.5"
+      [ngModel]="draft()?.exchangeRate" 
+      (ngModelChange)="updateDraft({ exchangeRate: $event })"
+      [readonly]="!isExchangeRateEditable()"
+      [class.bg-gray-100]="!isExchangeRateEditable()"/>
+    </div>
+  </div>
+
+  <div>
+  <label class="block text-sm font-medium mb-1">
+    Document Comment
+  </label>
+
+  <textarea rows="2" name="documentComment" class="w-full border rounded px-3 py-0.5"
+    [ngModel]="draft()?.documentComment"
+    (ngModelChange)="updateDraft({ documentComment: $event })">
+  </textarea>
+</div>
+
+
+
+  <div class="flex gap-3 pt-4">
+    <button type="submit" class="px-4 py-0.5 rounded bg-green-700 text-white hover:bg-green-800">Save</button>
+    <button type="button" routerLink="/documents/list" class="px-4 py-0.5 rounded border">Cancel</button>
+  </div>
+
+</form>

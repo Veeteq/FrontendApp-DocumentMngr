@@ -4,6 +4,7 @@ import { PagedResponse } from "../model/paged-response.model";
 import { Observable } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { Document } from "../model/document.model";
+import { CreateDocumentRequest } from "../../../core/dto/create-document-request.model";
 
 @Injectable({
     providedIn: "root"
@@ -18,12 +19,19 @@ export class DocumentApiService {
       .set('pageNumber', corrPageNumber)
       .set('pageSize', pageSize);
 
-      const uuid = crypto.randomUUID();
+    return this.httpClient.get<PagedResponse<Document>>(`${this.baseUrl}`, { params });
+  }
 
-      const headers = new HttpHeaders()
-      .set('Transaction-Id', uuid)
-      .set('Accept-Language', 'en-US');
+  createDocument(request: CreateDocumentRequest) : Observable<void> {
+    return this.httpClient.post<void>(`${this.baseUrl}`, request);
+  }
 
-    return this.httpClient.get<PagedResponse<Document>>(`${this.baseUrl}`, { params, headers });
+  searchDocuments(property: string, pattern: string) {
+    const params = new HttpParams()
+      .set('property', property)
+      .set('pattern', pattern)
+      .set('distinct', true);
+
+    return this.httpClient.get<string[]>(`${this.baseUrl}/search`, { params });
   }
 }

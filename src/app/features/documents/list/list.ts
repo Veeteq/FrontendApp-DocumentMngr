@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { DocumentApiService } from '../service/document-api.service';
 import { PagedResponse } from '../model/paged-response.model';
 import { Document } from '../model/document.model';
@@ -9,7 +9,7 @@ import { Document } from '../model/document.model';
   templateUrl: './list.html',
   styleUrl: './list.css',
 })
-export class List {
+export class List implements OnInit {
   private readonly api = inject(DocumentApiService);
 
   /** UI state */
@@ -26,6 +26,7 @@ export class List {
   ngOnInit(): void {
     this.loadDocuments();
   }
+  
   loadDocuments() {
     this.loading.set(true);
     this.error.set(null);
