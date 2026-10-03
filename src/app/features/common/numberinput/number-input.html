@@ -1,0 +1,21 @@
+<input type="text" inputmode="decimal"
+  [id]="inputId()"
+  [name]="inputName()"
+  [placeholder]="placeholder()"
+  [value]="displayValue()"
+  [disabled]="disabled()"
+  [readOnly]="readOnly()"
+  [required]="required()"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-invalid]="invalid()"
+
+  class="w-full border rounded px-3 py-0.5 text-right bg-white disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed read-only:bg-gray-100"
+
+  [class.border-red-500]="invalid()"
+  [class.focus:ring-red-200]="invalid()"
+  [class.border-gray-300]="!invalid()"
+
+  (focus)="onFocus()"
+  (input)="onInput($event)"
+  (blur)="onBlur()"
+/>

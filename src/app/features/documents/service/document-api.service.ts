@@ -13,11 +13,13 @@ export class DocumentApiService {
   private httpClient: HttpClient = inject(HttpClient);
   private readonly baseUrl = `${environment.documentApiUrl}/documents`;
 
-  getDocuments(pageNumber: number, pageSize: number): Observable<PagedResponse<Document>> {
+  getDocuments(pageNumber: number, pageSize: number, orderBy: string, orderDirection: string): Observable<PagedResponse<Document>> {
     const corrPageNumber = pageNumber - 1; // API is 0-based, UI is 1-based
     const params = new HttpParams()
       .set('pageNumber', corrPageNumber)
-      .set('pageSize', pageSize);
+      .set('pageSize', pageSize)
+      .set('orderBy', orderBy)
+      .set('orderDirection', orderDirection);
 
     return this.httpClient.get<PagedResponse<Document>>(`${this.baseUrl}`, { params });
   }

@@ -45,7 +45,7 @@ export class ItemCommentAutocompleteComponent {
 
       this.loading.set(true);
       
-      this.documentApi.searchDocuments("documentName", pattern)
+      this.documentApi.searchDocuments("documentItemComment", pattern)
       .subscribe({
         next: (comments) => {
           this.documentComments.set(comments);

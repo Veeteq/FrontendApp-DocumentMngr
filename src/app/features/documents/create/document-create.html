@@ -39,6 +39,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>      
+      <label class="block text-sm font-medium mb-1">Document name</label>
       <app-document-name-autocomplete (nameSelected)="onDocumentNameSelected($event)" (nameChanged)="onDocumentNameChanged($event)"/>
     </div>
     <div>
@@ -53,9 +54,11 @@
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div>
+      <label class="block text-sm font-medium mb-1">Account</label>
       <app-account-autocomplete (accountSelected)="onAccountSelected($event)"/>
     </div>
     <div class="md:col-span-2">
+      <label class="block text-sm font-medium mb-1 disabled:text-gray-400">Counterparty</label>
       <app-counterparty-autocomplete (counterpartySelected)="onCounterpartySelected($event)" [disabled]="!isCounterpartyEnabled()"/>
     </div>      
   </div>
@@ -72,6 +75,7 @@
     </div>
   
     <div class="col-span-2">
+      <label class="block text-sm font-medium mb-1 disabled:text-gray-400">Item</label>
       <app-item-autocomplete (itemSelected)="onItemSelected($event)"/>
     </div>
   </div>
@@ -96,6 +100,7 @@
   </div>
 
   <div>
+    <label class="block text-sm font-medium mb-1">Comment</label>
     <app-item-comment-autocomplete (commentSelected)="onCommentSelected($event)" (commentChanged)="onCommentChanged($event)"/>
   </div>
 

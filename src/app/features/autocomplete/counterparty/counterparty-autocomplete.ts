@@ -119,4 +119,13 @@ export class CounterpartyAutocompleteComponent {
   hideDropdown() {
     setTimeout(() => this.opened.set(false), 200);
   }
+
+  openAdvancedSearch() {
+    console.log("Advanced Search clicked");
+  }
+
+  addCounterparty() {
+    console.log("Add Counterparty clicked");
+  }
+  
 }

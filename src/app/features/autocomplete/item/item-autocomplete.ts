@@ -55,22 +55,6 @@ export class ItemAutocompleteComponent {
       console.log("opened: " + this.opened());
 
     });  
-    /* 
-      .subscribe({
-        next: (items) => {
-          this.items.set(items);
-          this.opened.set(true);
-          this.highlightedIndex.set(items.length > 0 ? 0 : -1);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.items.set([]);
-          this.opened.set(false);
-          this.loading.set(false);
-        },
-      });
-    });
-    */
   }
 
   onInput(value: string) {

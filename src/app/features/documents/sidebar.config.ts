@@ -22,6 +22,6 @@ export const DOCUMENTS_SIDEBAR: SidebarItem[] = [
   {
     label: 'Upload Document',
     icon: '⬆️',
-    route: 'upload'
+    route: 'poc'
   }
 ];

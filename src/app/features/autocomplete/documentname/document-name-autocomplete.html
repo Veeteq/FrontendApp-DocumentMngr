@@ -1,8 +1,5 @@
 <div class="relative">
-
-  <label class="block text-sm font-medium mb-1">Document name</label>
-
-  <input type="text" role="combobox" class="w-full border rounded px-3 py-0.5" placeholder="Document name"
+  <input type="text" role="combobox" class="w-full border border-gray-300 rounded px-3 py-0.5" placeholder="Document name"
   aria-autocomplete="list" [aria-expanded]="opened()" aria-haspopup="listbox" aria-controls="document-names-list"
   [ngModel]="searchText()" 
   (ngModelChange)="onInput($event)" 
