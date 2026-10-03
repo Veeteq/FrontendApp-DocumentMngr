@@ -4,4 +4,5 @@ export interface Account {
   accountDescription?: string;
   accountCurrency: string;
   accountImageUrl?: string;
+  defaultPaymentMethod: string;
 }

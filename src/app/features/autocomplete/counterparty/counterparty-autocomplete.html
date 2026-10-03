@@ -1,14 +1,15 @@
 <div class="relative">
-
-  <label class="block text-sm font-medium mb-1 disabled:text-gray-400">Counterparty</label>
-
-  <input type="text" role="combobox" class="w-full border rounded px-3 py-0.5 disabled:bg-gray-100 disabled:text-gray-400" placeholder="Counterparty name"
+  <input type="text" role="combobox" class="w-full border border-gray-300 rounded px-3 py-0.5 disabled:bg-gray-100 disabled:text-gray-400" placeholder="Counterparty name"
   aria-autocomplete="list" [aria-expanded]="opened()" aria-haspopup="listbox" aria-controls="counterparties-list"
   [ngModel]="searchText()"   
   (ngModelChange)="onInput($event)" 
   [disabled]="disabled()"
   (blur)="hideDropdown()"
   (keydown)="onKeyDown($event)"/>
+  <div class="absolute inset-y-0 right-1 flex items-center gap-1">
+    <button type="button" (click)="openAdvancedSearch()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Advanced Search">🔍</button>
+    <button type="button" (click)="addCounterparty()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Add Counterparty">➕</button>    
+  </div>
 
   @if (loading()) {
     <div class="absolute z-10 w-full bg-white rounded mt-1 p-2 text-sm">Searching...</div>

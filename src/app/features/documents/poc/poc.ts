@@ -1,58 +1,47 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterModule, RouterOutlet } from '@angular/router';
-import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
+import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
-import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
 import { DocumentNameAutocompleteComponent } from '../../autocomplete/documentname/document-name-autocomplete';
 import { ItemAutocompleteComponent } from '../../autocomplete/item/item-autocomplete';
-import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment/item-comment-autocomplete';
+import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { Account } from '../model/account.model';
 import { Counterparty } from '../model/counterparty.model';
 import { DocumentItem } from '../model/document-item.model';
 import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
-import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-import { LocaleService } from '../../../core/locale/locale.service';
-import { NumberFormatService } from '../../../core/locale/number-format.service';
+import { DocumentApiService } from '../service/document-api.service';
+import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
+import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
 
 @Component({
-  selector: 'app-document-create',
+  selector: 'app-poc',
   imports: [
-    RouterLink,
-    RouterOutlet,
-    RouterModule,
-    ReactiveFormsModule,
     FormsModule,
+    ReactiveFormsModule,
     AccountAutocompleteComponent,
     CounterpartyAutocompleteComponent,
     DocumentNameAutocompleteComponent,
     ItemAutocompleteComponent,
-    ItemCommentAutocompleteComponent,
-  ],
-  templateUrl: './document-create.html',
-  styleUrl: './document-create.css',
+    NumberInputComponent,
+],
+  templateUrl: './poc.html',
+  styleUrl: './poc.css',
 })
-export class DocumentCreate implements OnInit {
+export class Poc implements OnInit {
   private readonly repository = inject(DocumentRepositoryService);
   private readonly documentApi = inject(DocumentApiService);
   private readonly numberFormatService = inject(NumberFormatService);
-  
+
   // Temporary reference data
-  readonly documentTypes = ['NOTE', 'Bill', 'INVOICE', 'TRANSFER'];
+  readonly documentTypes = ['Note', 'Bill', 'Invoice'];
   readonly paymentMethods = ['CASH', 'CREDITCARD', 'DEBITCARD', 'BANKTRANSFER'];
   readonly currencies = ['PLN', 'EUR', 'USD', 'GBP'];
 
-  // UI state
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly accounts = signal<Account[]>([]);
   readonly validationErrors = signal<string[]>([]);
 
   readonly draft = this.repository.draft;
-
-  selectedItem: Item | null = null;
 
   ngOnInit(): void {
     this.repository.initDocument({
@@ -78,23 +67,7 @@ export class DocumentCreate implements OnInit {
       paymentMethod: account.defaultPaymentMethod,
     });
   }
-
-  onCommentSelected(comment: string) {
-    const draft = this.repository.draft();
-    if (!draft) return;
-    const currentItem = draft.documentItems?.[0];
-    if (!currentItem) return;
-
-    this.repository.updateDraft({
-      documentItems: [
-        {
-          ...currentItem,
-          itemComment: comment,
-        },
-      ],
-    });
-  }
-
+  
   onCommentChanged(comment: string) {
     console.log('onCommentChanged: ' + comment);
     const draft = this.repository.draft();
@@ -118,16 +91,20 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  onDocumentNameSelected(name: string) {
+  onDocumentNameChanged(name: string) {
     this.repository.updateDraft({
       documentName: name,
     });
   }
 
-  onDocumentNameChanged(name: string) {
-    this.repository.updateDraft({
-      documentName: name,
-    });
+  exchangeRateInput: string | null = '';
+  onExchangeRateChange(value: string) {
+    this.exchangeRateInput = value;
+    const parsed = this.numberFormatService.parse(value);
+    if (parsed == null) {      
+      return;
+    }
+    this.repository.updateDraft({ exchangeRate: parsed });
   }
 
   itemQuantityInput: string | null = '';
@@ -148,7 +125,7 @@ export class DocumentCreate implements OnInit {
       return;
     }
     this.updateDocumentItem({ itemPrice: parsed });
-  }    
+  }
 
   onItemSelected(item: Item) {
     const draft = this.repository.draft();
@@ -198,6 +175,16 @@ export class DocumentCreate implements OnInit {
     });
   }
 
+  getOriginalTotal(): string {
+    const draft = this.repository.draft();
+    const item = draft?.documentItems?.[0];
+
+    if (!item) return '0';
+
+    const total = (item.itemQuantity ?? 0) * (item.itemPrice ?? 0);
+    return this.numberFormatService.format(total, 2);
+  }
+
   submit() {
     const document = this.repository.draft();
     if (!document) return;
@@ -224,15 +211,35 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  getOriginalTotal(): string {
-    const draft = this.repository.draft();
-    const item = draft?.documentItems?.[0];
-
-    if (!item) return '0';
-
-    const total = (item.itemQuantity ?? 0) * (item.itemPrice ?? 0);
-    return this.numberFormatService.format(total, 2);
+  resetForm(): void {
+    this.repository.initDocument({
+      documentDate: new Date().toISOString().substring(0, 10),
+      documentType: 'Bill',
+      currencyCode: 'PLN',
+      exchangeRate: 1,
+    });
+    //this.ensureDocumentItem();
+    //this.validationErrors.set([]);
   }
+
+  isCounterpartyEnabled(): boolean {
+    const type = this.repository.draft()?.documentType;
+    return type === 'Invoice' || type === 'Bill';
+  }
+
+  isInvoiceNumberEnabled(): boolean {
+    const type = this.repository.draft()?.documentType;
+    return type === 'Invoice';
+  }
+  
+  isExchangeRateEditable(): boolean {
+    const accountCurrency = this.repository.draft()?.account?.accountCurrency;
+    const documentCurrency = this.repository.draft()?.currencyCode;
+    if (!accountCurrency || !documentCurrency) {
+      return true;
+    }
+    return accountCurrency !== documentCurrency;
+  }  
 
   private initDocumentItem() {
     const draft = this.repository.draft();
@@ -267,13 +274,13 @@ export class DocumentCreate implements OnInit {
 
     // Counterparty
     if (
-      (document.documentType === 'BILL' || document.documentType === 'INVOICE') &&
+      (document.documentType === 'Bill' || document.documentType === 'Invoice') &&
       !document.counterparty
     )
       errors.push('Counterparty is required');
 
     // Invoice
-    if (document.documentType === 'INVOICE' && !document.invoiceNumber?.trim())
+    if (document.documentType === 'Invoice' && !document.invoiceNumber?.trim())
       errors.push('Invoice number is required');
 
     // Payment
@@ -296,25 +303,6 @@ export class DocumentCreate implements OnInit {
     });
 
     return errors;
-  }
-
-  isCounterpartyEnabled(): boolean {
-    const type = this.repository.draft()?.documentType;
-    return type === 'INVOICE' || type === 'Bill';
-  }
-
-  isInvoiceNumberEnabled(): boolean {
-    const type = this.repository.draft()?.documentType;
-    return type === 'INVOICE';
-  }
-
-  isExchangeRateEditable(): boolean {
-    const accountCurrency = this.repository.draft()?.account?.accountCurrency;
-    const documentCurrency = this.repository.draft()?.currencyCode;
-    if (!accountCurrency || !documentCurrency) {
-      return true;
-    }
-    return accountCurrency !== documentCurrency;
   }
 
   private toCreateDocumentRequest(document: Document): CreateDocumentRequest {

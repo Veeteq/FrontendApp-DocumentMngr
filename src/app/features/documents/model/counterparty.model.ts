@@ -1,5 +1,5 @@
 export interface Counterparty {
-  id: number;
-  name: string;
+  counterpartyId: number;
+  counterpartyName: string;
   displayName: string;
 }
