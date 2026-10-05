@@ -20,10 +20,6 @@ export class DocumentRepositoryService {
   initDocument(base: Partial<Document>) {
     const now = new Date().toISOString();
 
-    if (!base.account) {
-      throw new Error('Account is required');
-    }
-    
     const document: Document = {
       documentDate: base.documentDate ?? now.substring(0, 10),
       documentType: base.documentType ?? '',

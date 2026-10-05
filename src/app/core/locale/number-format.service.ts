@@ -7,6 +7,10 @@ import { LocaleService } from "./locale.service";
 export class NumberFormatService {
   private readonly localeService = inject(LocaleService);
 
+  get locale(): string {
+    return this.localeService.getLocale();
+  }
+
   parse(value: string): number | null {
     if (!value.trim()) return null;
     const normalized = value.trim()
@@ -22,6 +26,11 @@ export class NumberFormatService {
     return value.toLocaleString(locale, { maximumFractionDigits: fractionDigits, minimumFractionDigits: fractionDigits });
   }
 
+  formatForEditing(value: number | null | undefined, fractionDigits: number = 2): string {
+    if (value == null || !Number.isFinite(value)) return '';
+    return new Intl.NumberFormat(this.locale, { useGrouping: false, minimumFractionDigits: 0, maximumFractionDigits: fractionDigits }).format(value);
+  }
+  
   formatQuantity(value: number | null | undefined): string {
     return this.format(value, 3);
   }
@@ -32,5 +41,10 @@ export class NumberFormatService {
 
   formatExchangeRate(value: number | null | undefined): string {
     return this.format(value, 6);
+  }
+
+  round(value: number, fractionDigits: number): number {
+    const factor = Math.pow(10, fractionDigits);
+    return Math.round(value * factor) / factor;
   }
 }

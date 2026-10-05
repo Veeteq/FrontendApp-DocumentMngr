@@ -18,7 +18,9 @@ export class List implements OnInit {
 
   /** Pagination */
   readonly page = signal(1);
-  readonly pageSize = 25;
+  readonly pageSize = 30;
+  readonly orderBy = signal('documentDate');
+  readonly orderDirection = signal('desc');
 
   /** API result */
   readonly result = signal<PagedResponse<Document> | null>(null);
@@ -31,7 +33,7 @@ export class List implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.getDocuments(this.page(), this.pageSize).subscribe({
+    this.api.getDocuments(this.page(), this.pageSize, this.orderBy(), this.orderDirection()).subscribe({
       next: (response) => {
         this.result.set(response);
         this.loading.set(false);

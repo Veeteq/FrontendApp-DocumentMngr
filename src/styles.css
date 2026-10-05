@@ -10,8 +10,8 @@
   --app-border: rgba(236,255,220,0.25); /* light green border */
 
   /* UI surfaces */
-  --app-panel: rgba(53, 94, 59, 0.40);
-  --app-panel-soft: rgba(53, 94, 59, 0.65);
+  --app-panel: rgba(2, 48, 32, 1.00);
+  --app-panel-soft: rgba(53, 94, 59, 0.15);
 
   /* Borders & separators */
   --app-border: rgba(236, 255, 220, 0.25);
@@ -22,8 +22,9 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: rgb(193, 225, 193, 0.15);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    background-color: rgba(235, 255, 235, 0.15);
 }
 
 /* Sidebar item base */
