@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { Item } from "../../documents/model/item.model";
 import { ItemApiService } from "../../documents/service/item-api.service";
 
@@ -30,31 +30,38 @@ export class ItemAutocompleteComponent {
 
   constructor() {
     this.search$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-
-      switchMap(pattern => {
+        debounceTime(300), 
+        distinctUntilChanged(), 
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(pattern => {
         console.log("pattern: " + pattern);
-        const trimmed = pattern.trim();
+        console.log("opened: " + this.opened());
 
-        if(trimmed.length < 3) {
+        const trimmed = pattern.trim();
+        
+        if (trimmed.length < 3) {
           this.items.set([]);
           this.opened.set(false);
-          return of([]);
+          return;
         }
-        this.loading.set(true);
-        return this.itemApi.searchItems(trimmed).pipe(
-          catchError(() => of([])),
-          finalize(() => this.loading.set(false))
-        );
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(items => {
-      this.items.set(items);
-      this.opened.set(items.length > 0 || this.searchText().length >= 3);
-      console.log("opened: " + this.opened());
 
-    });  
+        this.loading.set(true);
+
+        this.itemApi.searchItems(trimmed)
+        .subscribe({
+          next: (items) => {
+            this.items.set(items);
+            this.opened.set(true);
+            this.highlightedIndex.set(items.length > 0 ? 0 : -1);
+            this.loading.set(false);
+          },
+          error: (err) => {
+            this.items.set([]);
+            this.opened.set(false);
+            this.loading.set(false);
+          },
+        });
+      });
   }
 
   onInput(value: string) {

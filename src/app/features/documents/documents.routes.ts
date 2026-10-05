@@ -7,9 +7,11 @@ export const documentsRoutes: Routes = [
     children: [
       { path: '', redirectTo: 'list', pathMatch: 'full' },
       { path: 'details/:id', loadComponent: () => import('../documents/list/list').then(m => m.List) },
-      { path: 'poc',         loadComponent: () => import('../documents/poc/poc').then(m => m.Poc) },
+      { path: 'upload',      loadComponent: () => import('../documents/list/list').then(m => m.List) },      
       { path: 'new',         loadComponent: () => import('./create/document-create').then(m => m.DocumentCreate) },
-      { path: 'list',        loadComponent: () => import('../documents/list/list').then(m => m.List) }
+      { path: 'list',        loadComponent: () => import('../documents/list/list').then(m => m.List) },
+      { path: 'poc',         loadComponent: () => import('../documents/poc/poc').then(m => m.Poc) },
+      { path: 'transfer',    loadComponent: () => import('./transfer/transfer-money').then(m => m.TransferMoney) }
     ]
   }
 ];

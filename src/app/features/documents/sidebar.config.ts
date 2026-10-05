@@ -20,8 +20,13 @@ export const DOCUMENTS_SIDEBAR: SidebarItem[] = [
     route: 'new'
   },
   {
-    label: 'Upload Document',
+    label: 'New Document',
     icon: '⬆️',
     route: 'poc'
+  },
+    {
+    label: 'Money Transfer',
+    icon: '⬆️',
+    route: 'transfer'
   }
 ];

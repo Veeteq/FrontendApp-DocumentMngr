@@ -7,8 +7,8 @@
   (blur)="hideDropdown()"
   (keydown)="onKeyDown($event)"/>
   <div class="absolute inset-y-0 right-1 flex items-center gap-1">
-    <button type="button" (click)="openAdvancedSearch()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Advanced Search">🔍</button>
-    <button type="button" (click)="addCounterparty()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Add Counterparty">➕</button>    
+    <button type="button" (click)="openAdvancedSearch()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Advanced Search" tabindex="-1">🔍</button>
+    <button type="button" (click)="addCounterparty()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Add Counterparty" tabindex="-1">➕</button>
   </div>
 
   @if (loading()) {
@@ -21,7 +21,7 @@
         <div class="px-3 py-2 text-sm text-gray-500 italic">Nothing found</div>
       }
 
-      @for (counterparty of counterparties(); track counterparty.id; let index = $index) {
+      @for (counterparty of counterparties(); track counterparty.counterpartyId; let index = $index) {
         <button type="button" class="block w-full text-left px-3 py-0.5 text-sm hover:bg-gray-100 border-b border-gray-100" 
         [class.bg-green-100]="highlightedIndex() === index"
         (click)="selectCounterparty(counterparty)">
