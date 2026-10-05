@@ -7,8 +7,8 @@
   (blur)="hideDropdown()"
   (keydown)="onKeyDown($event)"/>
   <div class="absolute inset-y-0 right-1 flex items-center gap-1">
-    <button type="button" (click)="openAdvancedSearch()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Advanced Search">🔍</button>
-    <button type="button" (click)="addCounterparty()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Add Counterparty">➕</button>    
+    <button type="button" (click)="openAdvancedSearch()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Advanced Search" tabindex="-1">🔍</button>
+    <button type="button" (click)="addCounterparty()" class="h-5 w-5 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-600" title="Add Counterparty" tabindex="-1">➕</button>
   </div>
 
   @if (loading()) {

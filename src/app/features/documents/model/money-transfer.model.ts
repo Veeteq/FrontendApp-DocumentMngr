@@ -5,6 +5,7 @@ export interface MoneyTransfer {
   sourceAccount?: Account;
   targetAccount?: Account;
   transferAmount?: number;
+  paymentMethod?: string;
   exchangeRate: number;
   provisionAmount?: number;
   provisionAt?: 'SOURCE' | 'TARGET';

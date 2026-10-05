@@ -9,9 +9,13 @@ export class TransferRepositoryService {
   readonly draft = signal<MoneyTransfer | undefined>(undefined);
 
   initTransfer(transfer: Partial<MoneyTransfer>): void {
+    const now = new Date().toISOString();
+
     this.draft.set({
-      transferDate: '',
+      transferDate: transfer.transferDate ?? now.substring(0, 10),
+      transferAmount: 0,
       exchangeRate: 1,
+      provisionAmount: 0,
       ...transfer,
     });
   }
@@ -29,5 +33,11 @@ export class TransferRepositoryService {
 
   reset(): void {
     this.draft.set(undefined);
+    this.initTransfer({
+      transferDate: new Date().toISOString().substring(0, 10),
+      transferAmount: 0,
+      exchangeRate: 1,
+      provisionAmount: 0,
+    });
   }
 }

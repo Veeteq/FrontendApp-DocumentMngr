@@ -40,7 +40,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>      
       <label class="block text-sm font-medium mb-1">Document name</label>
-      <app-document-name-autocomplete (nameSelected)="onDocumentNameSelected($event)" (nameChanged)="onDocumentNameChanged($event)"/>
+      <app-document-name-autocomplete (nameChanged)="onDocumentNameChanged($event)"/>
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">Invoice Number</label>
@@ -101,7 +101,7 @@
 
   <div>
     <label class="block text-sm font-medium mb-1">Comment</label>
-    <app-item-comment-autocomplete (commentSelected)="onCommentSelected($event)" (commentChanged)="onCommentChanged($event)"/>
+    <app-item-comment-autocomplete (commentChanged)="onCommentChanged($event)"/>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

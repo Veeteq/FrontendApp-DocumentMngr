@@ -1,6 +1,5 @@
 import { Injectable, signal } from "@angular/core";
 import { Document } from "../model/document.model";
-import { DocumentItem } from "../model/document-item.model";
 
 @Injectable({
   providedIn: 'root'

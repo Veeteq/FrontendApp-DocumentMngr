@@ -16,9 +16,7 @@ export class NumberInputComponent {
   readonly maximum = input<number | null>(null);
   readonly disabled = input(false);
 
-  readonly readOnly = input(false, {
-    alias: 'readonly',
-  });
+  readonly readOnly = input(false, { alias: 'readonly' });
 
   readonly required = input(false);
   readonly placeholder = input('');
@@ -109,7 +107,7 @@ export class NumberInputComponent {
 
     if (minimum != null && value < minimum) return false;
     if (maximum != null && value > maximum) return false;
-    
+
     return true;
   }
 }

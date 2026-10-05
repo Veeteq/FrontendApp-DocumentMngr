@@ -1,19 +1,20 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
+import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
 import { DocumentNameAutocompleteComponent } from '../../autocomplete/documentname/document-name-autocomplete';
 import { ItemAutocompleteComponent } from '../../autocomplete/item/item-autocomplete';
+import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment/item-comment-autocomplete';
 import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { Account } from '../model/account.model';
 import { Counterparty } from '../model/counterparty.model';
 import { DocumentItem } from '../model/document-item.model';
 import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
-import { DocumentRepositoryService } from '../service/document-repository.service';
 import { DocumentApiService } from '../service/document-api.service';
-import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
-import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
+import { DocumentRepositoryService } from '../service/document-repository.service';
 
 @Component({
   selector: 'app-poc',
@@ -24,6 +25,7 @@ import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterpar
     CounterpartyAutocompleteComponent,
     DocumentNameAutocompleteComponent,
     ItemAutocompleteComponent,
+    ItemCommentAutocompleteComponent,
     NumberInputComponent,
 ],
   templateUrl: './poc.html',
@@ -85,9 +87,14 @@ export class Poc implements OnInit {
     });
   }
 
-  onCounterpartySelected(counterparty: Counterparty) {
+  onCounterpartySelected(counterparty: any) {
+    console.log('onCounterpartySelected: ' + JSON.stringify(counterparty));
     this.repository.updateDraft({
-      counterparty,
+      counterparty: {
+        counterpartyId: counterparty.id,
+        counterpartyName: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
+        displayName: counterparty.displayName,
+      },
     });
   }
 
@@ -196,6 +203,8 @@ export class Poc implements OnInit {
       console.error('Validation errors', errors);
       return;
     }
+
+    // Convert to request DTO
     const request = this.toCreateDocumentRequest(document);
     console.log('submit: ' + JSON.stringify(request, null, 2));
 

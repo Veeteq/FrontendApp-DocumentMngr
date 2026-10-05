@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterModule, RouterOutlet } from '@angular/router';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
+import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
 import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
 import { DocumentNameAutocompleteComponent } from '../../autocomplete/documentname/document-name-autocomplete';
@@ -14,8 +15,6 @@ import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-import { LocaleService } from '../../../core/locale/locale.service';
-import { NumberFormatService } from '../../../core/locale/number-format.service';
 
 @Component({
   selector: 'app-document-create',
@@ -79,22 +78,6 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  onCommentSelected(comment: string) {
-    const draft = this.repository.draft();
-    if (!draft) return;
-    const currentItem = draft.documentItems?.[0];
-    if (!currentItem) return;
-
-    this.repository.updateDraft({
-      documentItems: [
-        {
-          ...currentItem,
-          itemComment: comment,
-        },
-      ],
-    });
-  }
-
   onCommentChanged(comment: string) {
     console.log('onCommentChanged: ' + comment);
     const draft = this.repository.draft();
@@ -112,15 +95,14 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  onCounterpartySelected(counterparty: Counterparty) {
+  onCounterpartySelected(counterparty: any) {
+    console.log('onCounterpartySelected: ' + JSON.stringify(counterparty));
     this.repository.updateDraft({
-      counterparty,
-    });
-  }
-
-  onDocumentNameSelected(name: string) {
-    this.repository.updateDraft({
-      documentName: name,
+      counterparty: {
+        counterpartyId: counterparty.id,
+        counterpartyName: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
+        displayName: counterparty.displayName,
+      },
     });
   }
 
@@ -198,6 +180,16 @@ export class DocumentCreate implements OnInit {
     });
   }
 
+  getOriginalTotal(): string {
+    const draft = this.repository.draft();
+    const item = draft?.documentItems?.[0];
+
+    if (!item) return '0';
+
+    const total = (item.itemQuantity ?? 0) * (item.itemPrice ?? 0);
+    return this.numberFormatService.format(total, 2);
+  }
+
   submit() {
     const document = this.repository.draft();
     if (!document) return;
@@ -224,14 +216,23 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  getOriginalTotal(): string {
-    const draft = this.repository.draft();
-    const item = draft?.documentItems?.[0];
+  isCounterpartyEnabled(): boolean {
+    const type = this.repository.draft()?.documentType;
+    return type === 'INVOICE' || type === 'Bill';
+  }
 
-    if (!item) return '0';
+  isInvoiceNumberEnabled(): boolean {
+    const type = this.repository.draft()?.documentType;
+    return type === 'INVOICE';
+  }
 
-    const total = (item.itemQuantity ?? 0) * (item.itemPrice ?? 0);
-    return this.numberFormatService.format(total, 2);
+  isExchangeRateEditable(): boolean {
+    const accountCurrency = this.repository.draft()?.account?.accountCurrency;
+    const documentCurrency = this.repository.draft()?.currencyCode;
+    if (!accountCurrency || !documentCurrency) {
+      return true;
+    }
+    return accountCurrency !== documentCurrency;
   }
 
   private initDocumentItem() {
@@ -296,25 +297,6 @@ export class DocumentCreate implements OnInit {
     });
 
     return errors;
-  }
-
-  isCounterpartyEnabled(): boolean {
-    const type = this.repository.draft()?.documentType;
-    return type === 'INVOICE' || type === 'Bill';
-  }
-
-  isInvoiceNumberEnabled(): boolean {
-    const type = this.repository.draft()?.documentType;
-    return type === 'INVOICE';
-  }
-
-  isExchangeRateEditable(): boolean {
-    const accountCurrency = this.repository.draft()?.account?.accountCurrency;
-    const documentCurrency = this.repository.draft()?.currencyCode;
-    if (!accountCurrency || !documentCurrency) {
-      return true;
-    }
-    return accountCurrency !== documentCurrency;
   }
 
   private toCreateDocumentRequest(document: Document): CreateDocumentRequest {

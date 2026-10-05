@@ -11,7 +11,7 @@ export const documentsRoutes: Routes = [
       { path: 'new',         loadComponent: () => import('./create/document-create').then(m => m.DocumentCreate) },
       { path: 'list',        loadComponent: () => import('../documents/list/list').then(m => m.List) },
       { path: 'poc',         loadComponent: () => import('../documents/poc/poc').then(m => m.Poc) },
-      { path: 'transfer',    loadComponent: () => import('../documents/transfer/money-transfer').then(m => m.MoneyTransfer) }      
+      { path: 'transfer',    loadComponent: () => import('./transfer/transfer-money').then(m => m.TransferMoney) }
     ]
   }
 ];

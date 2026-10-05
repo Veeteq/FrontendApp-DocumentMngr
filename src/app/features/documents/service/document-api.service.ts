@@ -5,6 +5,7 @@ import { Observable } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { Document } from "../model/document.model";
 import { CreateDocumentRequest } from "../../../core/dto/create-document-request.model";
+import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.model";
 
 @Injectable({
     providedIn: "root"
@@ -25,6 +26,10 @@ export class DocumentApiService {
   }
 
   createDocument(request: CreateDocumentRequest) : Observable<void> {
+    return this.httpClient.post<void>(`${this.baseUrl}`, request);
+  }
+
+  createTransfer(request: MoneyTransferRequest) : Observable<void> {
     return this.httpClient.post<void>(`${this.baseUrl}`, request);
   }
 
