@@ -20,7 +20,7 @@
         <div class="px-3 py-2 text-sm text-gray-500 italic">Nothing found</div>
       }
 
-      @for (counterparty of counterparties(); track counterparty.id; let index = $index) {
+      @for (counterparty of counterparties(); track counterparty.counterpartyId; let index = $index) {
         <button type="button" class="block w-full text-left px-3 py-0.5 text-sm hover:bg-gray-100 border-b border-gray-100" 
         [class.bg-green-100]="highlightedIndex() === index"
         (click)="selectCounterparty(counterparty)">
