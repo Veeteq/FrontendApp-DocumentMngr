@@ -8,6 +8,7 @@ import { MoneyTransfer } from '../model/money-transfer.model';
 import { TransferRepositoryService } from "../service/money-transfer-repository.service";
 import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.model";
 import { DocumentApiService } from "../service/document-api.service";
+import { ToastService } from "../../../core/toast/toast.service";
 
 @Component({
   selector: 'app-money-transfer',
@@ -19,7 +20,8 @@ export class TransferMoney implements OnInit {
   private readonly repository = inject(TransferRepositoryService);
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly documentApi = inject(DocumentApiService);
-  
+  private readonly toastService = inject(ToastService);
+
   readonly paymentMethods = ['ATM WITHDRAWAL', 'ATM DEPOSIT', 'CASH', 'BANKTRANSFER'];
 
   readonly draft = this.repository.draft;
@@ -86,6 +88,7 @@ export class TransferMoney implements OnInit {
     const errors = this.validateTransfer();
     this.validationErrors.set(errors);
     if (errors.length > 0) {
+      this.toastService.error('Validation errors: ' + errors.join(', ')); 
       console.error('Validation errors:', errors);
       return;
     }
@@ -96,11 +99,13 @@ export class TransferMoney implements OnInit {
 
     //Send request to API
     this.documentApi.createTransfer(request)
-    .subscribe({ 
+    .subscribe({
       next: () => {
-        console.log('Transfer created successfully')
-      },    
+        this.toastService.success('Transfer created successfully');
+        console.log('Transfer created successfully');
+      },
       error: error => {
+        this.toastService.error('Error creating transfer document');
         console.error('Error creating transfer document', error);
       }
     });

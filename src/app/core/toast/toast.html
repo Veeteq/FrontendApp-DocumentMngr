@@ -1,0 +1,7 @@
+@if (toast()) {
+  <div class="fixed top-4 right-4 z-50 rounded shadow-lg px-4 py-2 text-white min-w-64"
+    [class.bg-green-600]="toast()?.type === 'success'"
+    [class.bg-red-600]="toast()?.type === 'error'">
+    {{ toast()?.message }}
+  </div>
+}
