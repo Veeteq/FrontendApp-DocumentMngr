@@ -20,7 +20,7 @@ export class TransferMoney implements OnInit {
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly documentApi = inject(DocumentApiService);
   
-  readonly paymentMethods = ['CASH', 'CREDITCARD', 'DEBITCARD', 'BANKTRANSFER'];
+  readonly paymentMethods = ['ATM WITHDRAWAL', 'ATM DEPOSIT', 'CASH', 'BANKTRANSFER'];
 
   readonly draft = this.repository.draft;
   readonly validationErrors = signal<string[]>([]);
@@ -107,7 +107,12 @@ export class TransferMoney implements OnInit {
   }
 
   resetForm() {
-    this.repository.reset();
+    this.validationErrors.set([]);
+
+    this.repository.initTransfer({
+      transferDate: new Date().toISOString().substring(0, 10),
+      exchangeRate: 1,
+    });
   }
 
   validateTransfer(): string[] {

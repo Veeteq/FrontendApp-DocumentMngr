@@ -221,14 +221,15 @@ export class Poc implements OnInit {
   }
 
   resetForm(): void {
+    this.validationErrors.set([]);
+
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
       documentType: 'Bill',
       currencyCode: 'PLN',
       exchangeRate: 1,
     });
-    //this.ensureDocumentItem();
-    //this.validationErrors.set([]);
+    this.initDocumentItem();
   }
 
   isCounterpartyEnabled(): boolean {
