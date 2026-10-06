@@ -15,6 +15,7 @@ import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
+import { ToastService } from '../../../core/toast/toast.service';
 
 @Component({
   selector: 'app-document-create',
@@ -37,7 +38,8 @@ export class DocumentCreate implements OnInit {
   private readonly repository = inject(DocumentRepositoryService);
   private readonly documentApi = inject(DocumentApiService);
   private readonly numberFormatService = inject(NumberFormatService);
-  
+  private readonly toastService = inject(ToastService);
+
   // Temporary reference data
   readonly documentTypes = ['NOTE', 'Bill', 'INVOICE', 'TRANSFER'];
   readonly paymentMethods = ['CASH', 'CREDITCARD', 'DEBITCARD', 'BANKTRANSFER'];
@@ -198,6 +200,7 @@ export class DocumentCreate implements OnInit {
     const errors = this.validateDocument();
     this.validationErrors.set(errors);
     if (errors.length > 0) {
+      this.toastService.error('Validation errors: ' + errors.join(', '));
       console.error('Validation errors', errors);
       return;
     }
@@ -208,9 +211,11 @@ export class DocumentCreate implements OnInit {
     this.documentApi.createDocument(request)
     .subscribe({ 
       next: () => {
+        this.toastService.success('Document created successfully');
         console.log('Document created successfully')
       },    
       error: error => {
+        this.toastService.error('Error creating document');
         console.error('Error creating document', error);
       }
     });
