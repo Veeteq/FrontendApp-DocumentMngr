@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { AuthStore } from '../../core/auth/auth.store';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
+import { AuthStore } from '../../core/auth/auth.store';
 
 @Component({
   selector: 'app-header',
@@ -17,6 +17,6 @@ export class Header {
   private router = inject(Router);
 
   logout() {
-    this.authService.logout();
+    this.authService.logout().subscribe() ;
   }
 }
