@@ -11,10 +11,11 @@ import { RefreshTokenResponse } from '../../model/refresh-token-response';
   providedIn: 'root'
 })
 export class AuthService {
-  private authStore: AuthStore = inject(AuthStore);
-  private http: HttpClient = inject(HttpClient);
-  private router = inject(Router);
-  private readonly baseUrl = `${environment.authApiUrl}`;
+  private readonly authStore = inject(AuthStore);
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+
+  private readonly baseUrl = environment.authApiUrl;
 
   private refreshInProgress = false;
   private refreshRequest$?: Observable<RefreshTokenResponse>;
@@ -22,53 +23,49 @@ export class AuthService {
   login(username: string, password: string) {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`,
         { username, password },
-        { withCredentials: true },
+        { withCredentials: true }
       )
       .pipe(
-        tap((data) => {
+        tap(data => {
           this.authStore.setAccessToken(data.token);
           this.authStore.setExpiresAt(data.expiresAt);
         }),
       );
   }
 
-  logout() {
+  logout(): Observable<void> {
     console.log('2. Logging out...');
-    return this.http.post(`${this.baseUrl}/logout`,
+    return this.http.post<void>(`${this.baseUrl}/logout`,
       {},
-      { withCredentials: true },
+      { withCredentials: true }
     )
       .pipe(
         finalize(() => {
           this.authStore.clearAccessToken();
           this.router.navigate(['/login']);
-        }),
-      )
-      .subscribe({
-        error: err => console.error('Logout failed', err)
-      });
+        })
+    );
   }
 
   //regular refresh token request, which will be called by the interceptor when a 401 is received
-  refreshToken() {
+  refreshToken(): Observable<RefreshTokenResponse> {
     return this.http
-      .post<RefreshTokenResponse>(
-        `${this.baseUrl}/refresh`,
+      .post<RefreshTokenResponse>(`${this.baseUrl}/refresh`,
         {},
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true }
       )
       .pipe(
-        tap((data) => {
+        tap(data => {
           this.authStore.setAccessToken(data.token);
           this.authStore.setExpiresAt(data.expiresAt);
-        }),
+        })
       );
   }
 
-  //optimized refresh token request to Prevent Refresh Storms (Concurrent 401 Requests)
-  refreshTokenShared() : Observable<RefreshTokenResponse>{
+  /**
+   * Prevents multiple simultaneous refresh requests.
+   */
+  refreshTokenShared(): Observable<RefreshTokenResponse> {
     if (this.refreshInProgress && this.refreshRequest$) {
       console.log('Using running refresh request');
       return this.refreshRequest$;
@@ -83,9 +80,20 @@ export class AuthService {
         this.refreshInProgress = false;
         this.refreshRequest$ = undefined;
       }),
-      shareReplay(1),
+      shareReplay(1)
     );
 
     return this.refreshRequest$;
+  }
+
+  /**
+   * Clears the local authentication state and redirects to login.
+   *
+   * Used when the refresh token is no longer valid.
+   * Does NOT call the backend logout endpoint.
+   */
+  handleSessionExpired(): void {
+    this.authStore.clearAccessToken();
+    this.router.navigate(['/login']);
   }
 }
