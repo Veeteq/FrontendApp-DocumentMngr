@@ -101,7 +101,6 @@ export class TransferMoney implements OnInit {
 
     // Convert to request DTO
     const request = this.toMoneyTransferRequest(transfer);
-    console.log('submit: ' + JSON.stringify(request, null, 2));
 
     //Send request to API
     this.creating.set(true);
@@ -115,7 +114,6 @@ export class TransferMoney implements OnInit {
           const location = response.headers.get('location');
           console.log('Created resource:', location);
           this.toastService.success('Transfer created successfully');
-          console.log('Transfer created successfully');
           this.resetForm();
         },
         error: (error) => {
@@ -131,7 +129,6 @@ export class TransferMoney implements OnInit {
       transferDate: new Date().toISOString().substring(0, 10),
       exchangeRate: 1,
     });
-    console.log(JSON.stringify(this.draft(), null, 2));
   }
 
   validateTransfer(): string[] {
