@@ -34,9 +34,6 @@ export class ItemAutocompleteComponent {
         distinctUntilChanged(), 
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(pattern => {
-        console.log("pattern: " + pattern);
-        console.log("opened: " + this.opened());
-
         const trimmed = pattern.trim();
         
         if (trimmed.length < 3) {
@@ -79,36 +76,29 @@ export class ItemAutocompleteComponent {
   }
 
   onKeyDown($event: KeyboardEvent) {
-    console.log("opened: " + this.opened());
-    console.log("highlightedIndex: " + this.highlightedIndex());
     if (!this.opened()) return;
 
     const items = this.items();
     switch ($event.key) {
       case 'ArrowDown':
-        console.log('down');
         $event.preventDefault();
         this.highlightedIndex.update(index => Math.min(index + 1, items.length - 1));
         break;
       case 'ArrowUp':
-        console.log('up');
         $event.preventDefault();
         this.highlightedIndex.update(index => Math.max(index - 1, 0));
         break;
       case 'Enter':
-        console.log('enter');
         if (this.highlightedIndex() >= 0) {
           $event.preventDefault();
           this.selectItem(items[this.highlightedIndex()]);
         }
         break;
       case 'Escape':
-        console.log('escape');
         this.opened.set(false);
         this.highlightedIndex.set(-1);
         break;
       case 'Tab':
-        console.log('tab');
         if (this.opened() && this.highlightedIndex() >= 0) {
           this.selectItem(items[this.highlightedIndex()]);
         }

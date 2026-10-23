@@ -34,7 +34,6 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    console.log('2. Logging out...');
     return this.http.post<void>(`${this.baseUrl}/logout`,
       {},
       { withCredentials: true }
@@ -67,16 +66,13 @@ export class AuthService {
    */
   refreshTokenShared(): Observable<RefreshTokenResponse> {
     if (this.refreshInProgress && this.refreshRequest$) {
-      console.log('Using running refresh request');
       return this.refreshRequest$;
     }
 
-    console.log('Starting refresh request');
     this.refreshInProgress = true;
 
     this.refreshRequest$ = this.refreshToken().pipe(
       finalize(() => {
-        console.log('Refresh finished');
         this.refreshInProgress = false;
         this.refreshRequest$ = undefined;
       }),

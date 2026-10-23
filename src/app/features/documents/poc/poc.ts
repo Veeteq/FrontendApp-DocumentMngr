@@ -75,7 +75,6 @@ export class Poc implements OnInit {
   }
 
   onCommentChanged(comment: string) {
-    console.log('onCommentChanged: ' + comment);
     const draft = this.repository.draft();
     if (!draft) return;
     const currentItem = draft.documentItems?.[0];
@@ -92,7 +91,6 @@ export class Poc implements OnInit {
   }
 
   onCounterpartySelected(counterparty: any) {
-    console.log('onCounterpartySelected: ' + JSON.stringify(counterparty));
     this.repository.updateDraft({
       counterparty: {
         counterpartyId: counterparty.id,
@@ -214,7 +212,6 @@ export class Poc implements OnInit {
 
     // Convert to request DTO
     const request = this.toCreateDocumentRequest(document);
-    console.log('submit: ' + JSON.stringify(request, null, 2));
 
     //Send request to API
     this.creating.set(true);
@@ -222,9 +219,10 @@ export class Poc implements OnInit {
       .createDocument(request)
       .pipe(finalize(() => this.creating.set(false)))
       .subscribe({
-        next: () => {
+        next: (response) => {
+          const location = response.headers.get('Location');
+          console.log('Document created at: ' + location);
           this.toastService.success('Document created successfully');
-          console.log('Document created successfully');
           this.resetForm();
         },
         error: (error) => {
