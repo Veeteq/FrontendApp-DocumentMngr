@@ -28,12 +28,12 @@
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-4">
         <label class="block text-xs font-medium mb-1">Source Account</label>
-        <app-account-autocomplete (accountSelected)="onSourceAccountSelected($event)"/>
+        <app-account-autocomplete [value]="draft()?.sourceAccount" (accountSelected)="onSourceAccountSelected($event)"/>
       </div>
 
       <div class="col-span-4">
         <label class="block text-xs font-medium mb-1">Target Account</label>
-        <app-account-autocomplete (accountSelected)="onTargetAccountSelected($event)"/>
+        <app-account-autocomplete [value]="draft()?.targetAccount" (accountSelected)="onTargetAccountSelected($event)"/>
       </div>
 
       <div class="col-span-4">

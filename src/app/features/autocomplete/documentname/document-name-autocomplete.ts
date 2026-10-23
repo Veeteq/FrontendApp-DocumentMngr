@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DocumentApiService } from "../../documents/service/document-api.service";
@@ -22,6 +22,7 @@ export class DocumentNameAutocompleteComponent {
   readonly documentNames = signal<string[]>([]);
   readonly loading = signal(false);
   readonly opened = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly highlightedIndex = signal(-1);
   readonly selectedName = signal<string | null>(null);
@@ -29,34 +30,41 @@ export class DocumentNameAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
-    this.search$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(pattern => {
-      if(pattern.length < 3) {
-        this.documentNames.set([]);
-        this.opened.set(false);
-        return;
-      }
+     this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(pattern => {
+          console.log('pattern: ' + pattern);
+          const trimmed = pattern.trim();
 
-      this.loading.set(true);
-      
-      this.documentApi.searchDocuments("documentName", pattern)
-      .subscribe({
-        next: (names) => {
-          this.documentNames.set(names);
-          this.opened.set(true);
-          this.highlightedIndex.set(names.length > 0 ? 0 : -1);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.documentNames.set([]);
-          this.opened.set(false);
-          this.loading.set(false);
-        },
+          this.error.set(null);
+
+          if (trimmed.length < 3) {
+            this.loading.set(false);
+            return of([]);
+          }
+
+          this.loading.set(true);
+
+          return this.documentApi.searchDocuments("documentName", trimmed)
+          .pipe(
+            catchError(() => {
+              this.error.set('Failed to load document names');
+              return of([]);
+            }),
+            finalize(() => this.loading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((items) => {
+        this.documentNames.set(items);
+        this.highlightedIndex.set(items.length > 0 ? 0 : -1);
+        const searchable = this.searchText().trim().length >= 3;
+        this.opened.set(searchable);
+        console.log('opened: ' + this.opened());
       });
-    });
   }
 
   onInput(value: string) {

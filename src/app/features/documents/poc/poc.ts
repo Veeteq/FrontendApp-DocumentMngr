@@ -107,36 +107,6 @@ export class Poc implements OnInit {
     });
   }
 
-  exchangeRateInput: string | null = '';
-  onExchangeRateChange(value: string) {
-    this.exchangeRateInput = value;
-    const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {
-      return;
-    }
-    this.repository.updateDraft({ exchangeRate: parsed });
-  }
-
-  itemQuantityInput: string | null = '';
-  onItemQuantityChange(value: string) {
-    this.itemQuantityInput = value;
-    const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {
-      return;
-    }
-    this.updateDocumentItem({ itemQuantity: parsed });
-  }
-
-  itemPriceInput: string | null = '';
-  onItemPriceChange(value: string) {
-    this.itemPriceInput = value;
-    const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {
-      return;
-    }
-    this.updateDocumentItem({ itemPrice: parsed });
-  }
-
   onItemSelected(item: Item) {
     const draft = this.repository.draft();
     if (!draft) return;
@@ -266,9 +236,6 @@ export class Poc implements OnInit {
     const draft = this.repository.draft();
     if (!draft) return;
     if (draft.documentItems?.length > 0) return;
-
-    this.onItemQuantityChange('1');
-    this.onItemPriceChange('0');
 
     this.repository.updateDraft({
       documentItems: [

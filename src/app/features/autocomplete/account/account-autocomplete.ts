@@ -1,6 +1,6 @@
-import { Component, DestroyRef, inject, output, signal } from "@angular/core";
+import { Component, DestroyRef, effect, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 import { Account } from "../../documents/model/account.model";
 import { AccountApiService } from "../../documents/service/account-api.service";
 
@@ -16,12 +16,14 @@ export class AccountAutocompleteComponent {
   private readonly accountApi = inject(AccountApiService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly value = input<Account | undefined>();
   readonly accountSelected = output<Account>();
 
   readonly searchText = signal('');
   readonly accounts = signal<Account[]>([]);
   readonly loading = signal(false);
   readonly opened = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly highlightedIndex = signal(-1);
   readonly selectedAccount = signal<Account | null>(null);
@@ -29,34 +31,53 @@ export class AccountAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
-    this.search$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(pattern => {
-      if(pattern.length < 2) {
+    effect(() => {
+      const account = this.value();
+      if (!account) {
+        this.searchText.set('');
         this.accounts.set([]);
         this.opened.set(false);
-        return;
+        this.selectedAccount.set(null);
+        this.highlightedIndex.set(-1);
+        this.error.set(null);
       }
-
-      this.loading.set(true);
-      
-      this.accountApi.searchAccounts(pattern)
-      .subscribe({
-        next: (accounts) => {
-          this.accounts.set(accounts);
-          this.opened.set(true);
-          this.highlightedIndex.set(accounts.length > 0 ? 0 : -1);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.accounts.set([]);
-          this.opened.set(false);
-          this.loading.set(false);
-        },
-      });
     });
+
+    this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(pattern => {
+          console.log('pattern: ' + pattern);
+          const trimmed = pattern.trim();
+
+          this.error.set(null);
+
+          if (trimmed.length < 3) {
+            this.loading.set(false);
+            return of([]);
+          }
+
+          this.loading.set(true);
+
+          return this.accountApi.searchAccounts(trimmed)
+          .pipe(
+            catchError(() => {
+              this.error.set('Failed to load items');
+              return of([]);
+            }),
+            finalize(() => this.loading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((items) => {
+        this.accounts.set(items);
+        this.highlightedIndex.set(items.length > 0 ? 0 : -1);
+        const searchable = this.searchText().trim().length >= 3;
+        this.opened.set(searchable);
+        console.log('opened: ' + this.opened());
+      });
   }
 
   onInput(value: string) {

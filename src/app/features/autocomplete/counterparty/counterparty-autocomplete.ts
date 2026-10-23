@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AddressbookApiService } from "../../documents/service/addressbook-api.service";
@@ -24,6 +24,7 @@ export class CounterpartyAutocompleteComponent {
   readonly counterparties = signal<Counterparty[]>([]);
   readonly loading = signal(false);
   readonly opened = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly highlightedIndex = signal(-1);
   readonly selectedCounterparty = signal<Counterparty | null>(null);
@@ -31,34 +32,41 @@ export class CounterpartyAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
-    this.search$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(pattern => {
-      if(pattern.length < 3) {
-        this.counterparties.set([]);
-        this.opened.set(false);
-        return;
-      }
+    this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(pattern => {
+          console.log('pattern: ' + pattern);
+          const trimmed = pattern.trim();
 
-      this.loading.set(true);
-      
-      this.addressbookApi.searchCounterparties(pattern)
-      .subscribe({
-        next: (counterparties) => {
-          this.counterparties.set(counterparties);
-          this.opened.set(true);
-          this.highlightedIndex.set(counterparties.length > 0 ? 0 : -1);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.counterparties.set([]);
-          this.opened.set(false);
-          this.loading.set(false);
-        },
+          this.error.set(null);
+
+          if (trimmed.length < 3) {
+            this.loading.set(false);
+            return of([]);
+          }
+
+          this.loading.set(true);
+
+          return this.addressbookApi.searchCounterparties(trimmed)
+          .pipe(
+            catchError(() => {
+              this.error.set('Failed to load counterparties');
+              return of([]);
+            }),
+            finalize(() => this.loading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((items) => {
+        this.counterparties.set(items);
+        this.highlightedIndex.set(items.length > 0 ? 0 : -1);
+        const searchable = this.searchText().trim().length >= 3;
+        this.opened.set(searchable);
+        console.log('opened: ' + this.opened());
       });
-    });
   }
 
   onInput(value: string) {
