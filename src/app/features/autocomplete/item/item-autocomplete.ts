@@ -1,6 +1,6 @@
-import { Component, DestroyRef, inject, output, signal } from "@angular/core";
+import { Component, DestroyRef, effect, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 import { Item } from "../../documents/model/item.model";
 import { ItemApiService } from "../../documents/service/item-api.service";
 
@@ -10,18 +10,20 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   selector: 'app-item-autocomplete',
   imports: [FormsModule],
   templateUrl: './item-autocomplete.html',
-  styleUrls: ['./item-autocomplete.css']
+  styleUrls: ['./item-autocomplete.css'],
 })
 export class ItemAutocompleteComponent {
   private readonly itemApi = inject(ItemApiService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly value = input<Item | undefined>();
   readonly itemSelected = output<Item>();
 
   readonly searchText = signal('');
   readonly items = signal<Item[]>([]);
   readonly loading = signal(false);
   readonly opened = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly highlightedIndex = signal(-1);
   readonly selectedItem = signal<Item | null>(null);
@@ -29,35 +31,52 @@ export class ItemAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
-    this.search$.pipe(
-        debounceTime(300), 
-        distinctUntilChanged(), 
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe(pattern => {
-        const trimmed = pattern.trim();
-        
-        if (trimmed.length < 3) {
-          this.items.set([]);
-          this.opened.set(false);
-          return;
-        }
+    effect(() => {
+      const item = this.value();
+      if (!item) {
+        this.searchText.set('');
+        this.items.set([]);
+        this.opened.set(false);
+        this.selectedItem.set(null);
+        this.highlightedIndex.set(-1);
+        this.error.set(null);
+      }
+    });
 
-        this.loading.set(true);
+    this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(pattern => {
+          console.log('pattern: ' + pattern);
+          const trimmed = pattern.trim();
 
-        this.itemApi.searchItems(trimmed)
-        .subscribe({
-          next: (items) => {
-            this.items.set(items);
-            this.opened.set(true);
-            this.highlightedIndex.set(items.length > 0 ? 0 : -1);
+          this.error.set(null);
+
+          if (trimmed.length < 3) {
             this.loading.set(false);
-          },
-          error: (err) => {
-            this.items.set([]);
-            this.opened.set(false);
-            this.loading.set(false);
-          },
-        });
+            return of([]);
+          }
+
+          this.loading.set(true);
+
+          return this.itemApi.searchItems(trimmed)
+          .pipe(
+            catchError(() => {
+              this.error.set('Failed to load items');
+              return of([]);
+            }),
+            finalize(() => this.loading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((items) => {
+        this.items.set(items);
+        this.highlightedIndex.set(items.length > 0 ? 0 : -1);
+        const searchable = this.searchText().trim().length >= 3;
+        this.opened.set(searchable);
+        console.log('opened: ' + this.opened());
       });
   }
 
@@ -82,11 +101,11 @@ export class ItemAutocompleteComponent {
     switch ($event.key) {
       case 'ArrowDown':
         $event.preventDefault();
-        this.highlightedIndex.update(index => Math.min(index + 1, items.length - 1));
+        this.highlightedIndex.update((index) => Math.min(index + 1, items.length - 1));
         break;
       case 'ArrowUp':
         $event.preventDefault();
-        this.highlightedIndex.update(index => Math.max(index - 1, 0));
+        this.highlightedIndex.update((index) => Math.max(index - 1, 0));
         break;
       case 'Enter':
         if (this.highlightedIndex() >= 0) {

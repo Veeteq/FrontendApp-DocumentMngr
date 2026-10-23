@@ -2,6 +2,7 @@
   <input type="text" role="combobox" class="w-full border border-gray-300 rounded px-3 py-0.5" placeholder="Item name"
   aria-autocomplete="list" [aria-expanded]="opened()" aria-haspopup="listbox" aria-controls="item-list"
   [ngModel]="searchText()" 
+  [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="onInput($event)" 
   (blur)="hideDropdown()"
   (keydown)="onKeyDown($event)"/>
@@ -10,18 +11,21 @@
     <div class="absolute z-10 w-full bg-white rounded mt-1 p-2 text-sm">Searching...</div>
   }
 
-  @if (opened()) {
+  @if (opened() && !loading()) {
     <div class="absolute z-50 w-full bg-white border rounded mt-1 shadow max-h-60 overflow-auto">
-      @if (items().length === 0) {
-        <div class="px-3 py-2 text-sm text-gray-500 italic">Nothing found</div>
-      }
-
-      @for (item of items(); track item.itemId; let index = $index) {
-        <button type="button" class="block w-full text-left px-3 py-0.5 text-sm hover:bg-gray-100 border-b border-gray-100" 
-        [class.bg-green-100]="highlightedIndex() === index"
-        (click)="selectItem(item)">
-          {{ item.itemName }}
-        </button>
+      @if (error()) {
+        <div class="px-3 py-2 text-xs text-red-600">{{ error() }}</div>
+      } @else if (items().length === 0) {      
+        <div class="px-3 py-2 text-xs text-gray-500 italic">Nothing found</div>
+      } @else {
+        @for (item of items(); track item.itemId; let index = $index) {
+          <button type="button" role="option" class="block w-full text-left px-3 py-0.5 text-sm hover:bg-gray-100 border-b border-gray-100" 
+          [class.bg-green-100]="highlightedIndex() === index"
+          [attr.aria-selected]="highlightedIndex() === index"
+          (click)="selectItem(item)">
+            {{ item.itemName }}
+          </button>
+        }
       }
     </div>
   }
