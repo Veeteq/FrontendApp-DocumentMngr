@@ -18,6 +18,7 @@ export class List implements OnInit {
 
   /** UI state */
   readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
 
   /** Pagination */
   readonly page = signal(1);
@@ -34,6 +35,7 @@ export class List implements OnInit {
   
   loadDocuments() {
     this.loading.set(true);    
+    this.error.set(null);
 
     this.api.getDocuments(this.page(), this.pageSize, this.orderBy(), this.orderDirection())
     .pipe(
@@ -45,13 +47,13 @@ export class List implements OnInit {
       },
       error: (error: ApplicationHttpError) => {
         this.handleHttpError(error, 'Failed to load documents');
-
       }
     });
   }
 
   private handleHttpError(error: unknown, fallback: string) {
     const errorMessage = getApplicationErrorMessage(error, fallback);
+    this.error.set(errorMessage);
     this.toastService.error(errorMessage);
     console.error(fallback, error);
   }
