@@ -6,12 +6,6 @@
   <p>Loading documents…</p>
 }
 
-@if (error()) {
-  <p class="text-red-500">
-    {{ error() }}
-  </p>
-}
-
 @if (!loading() && result()) {
   <div class="overflow-x-auto border rounded">
     

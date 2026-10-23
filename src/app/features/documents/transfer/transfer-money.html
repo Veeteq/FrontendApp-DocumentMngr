@@ -146,8 +146,11 @@
   <!-- Actions -->
   <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
     <div class="flex gap-2">
-      <button type="button" class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" (click)="resetForm()">Reset</button>
-      <button type="submit" class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700">Transfer Money</button>
+      <button type="button" class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" 
+      (click)="resetForm()" 
+      [disabled]="creating()">Reset</button>
+      <button type="submit" class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" 
+      [disabled]="creating()">Transfer Money</button>
     </div>
   </div>
 </form>

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import { finalize } from 'rxjs';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
@@ -8,14 +9,15 @@ import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterpar
 import { DocumentNameAutocompleteComponent } from '../../autocomplete/documentname/document-name-autocomplete';
 import { ItemAutocompleteComponent } from '../../autocomplete/item/item-autocomplete';
 import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment/item-comment-autocomplete';
+import { NumberInputComponent } from '../../common/numberinput/number-input';
+import { ToastService } from '../../common/toast/toast.service';
 import { Account } from '../model/account.model';
-import { Counterparty } from '../model/counterparty.model';
 import { DocumentItem } from '../model/document-item.model';
 import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-import { ToastService } from '../../../core/toast/toast.service';
+import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
 
 @Component({
   selector: 'app-document-create',
@@ -30,6 +32,7 @@ import { ToastService } from '../../../core/toast/toast.service';
     DocumentNameAutocompleteComponent,
     ItemAutocompleteComponent,
     ItemCommentAutocompleteComponent,
+    NumberInputComponent,
   ],
   templateUrl: './document-create.html',
   styleUrl: './document-create.css',
@@ -47,6 +50,7 @@ export class DocumentCreate implements OnInit {
 
   // UI state
   readonly loading = signal(false);
+  readonly creating = signal(false);
   readonly error = signal<string | null>(null);
   readonly accounts = signal<Account[]>([]);
   readonly validationErrors = signal<string[]>([]);
@@ -102,7 +106,8 @@ export class DocumentCreate implements OnInit {
     this.repository.updateDraft({
       counterparty: {
         counterpartyId: counterparty.id,
-        counterpartyName: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
+        counterpartyName:
+          counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
         displayName: counterparty.displayName,
       },
     });
@@ -113,26 +118,6 @@ export class DocumentCreate implements OnInit {
       documentName: name,
     });
   }
-
-  itemQuantityInput: string | null = '';
-  onItemQuantityChange(value: string) {
-    this.itemQuantityInput = value;
-    const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {      
-      return;
-    }
-    this.updateDocumentItem({ itemQuantity: parsed });
-  }
-
-  itemPriceInput: string | null = '';
-  onItemPriceChange(value: string) {
-    this.itemPriceInput = value;
-    const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {      
-      return;
-    }
-    this.updateDocumentItem({ itemPrice: parsed });
-  }    
 
   onItemSelected(item: Item) {
     const draft = this.repository.draft();
@@ -193,6 +178,8 @@ export class DocumentCreate implements OnInit {
   }
 
   submit() {
+    if (this.creating()) return; // Prevent multiple submissions
+
     const document = this.repository.draft();
     if (!document) return;
 
@@ -200,25 +187,45 @@ export class DocumentCreate implements OnInit {
     const errors = this.validateDocument();
     this.validationErrors.set(errors);
     if (errors.length > 0) {
-      this.toastService.error('Validation errors: ' + errors.join(', '));
+      this.toastService.error('Please correct the validation errors');
       console.error('Validation errors', errors);
       return;
     }
     const request = this.toCreateDocumentRequest(document);
     console.log('submit: ' + JSON.stringify(request, null, 2));
+    this.creating.set(true);
 
     //Send request to API
-    this.documentApi.createDocument(request)
-    .subscribe({ 
-      next: () => {
-        this.toastService.success('Document created successfully');
-        console.log('Document created successfully')
-      },    
-      error: error => {
-        this.toastService.error('Error creating document');
-        console.error('Error creating document', error);
-      }
+    this.documentApi
+      .createDocument(request)
+      .pipe(
+        finalize(() => this.creating.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          const location = response.headers.get('Location');
+          console.log('Document created at: ' + location);
+          this.toastService.success('Document created successfully');
+          console.log('Document created successfully');
+          this.resetForm();
+        },
+        error: (error) => {
+          this.handleHttpError(error, 'Unable to create document');
+        },
+      });
+  }
+
+  resetForm() {
+    this.repository.initDocument({
+      documentDate: new Date().toISOString().substring(0, 10),
+      documentType: 'Bill',
+      documentName: '',
+      paymentMethod: '',
+      currencyCode: 'PLN',
+      exchangeRate: 1,
+      documentComment: '',
     });
+    this.initDocumentItem();
   }
 
   isCounterpartyEnabled(): boolean {
@@ -244,9 +251,6 @@ export class DocumentCreate implements OnInit {
     const draft = this.repository.draft();
     if (!draft) return;
     if (draft.documentItems?.length > 0) return;
-
-    this.onItemQuantityChange('1');
-    this.onItemPriceChange('0');
 
     this.repository.updateDraft({
       documentItems: [
@@ -330,6 +334,12 @@ export class DocumentCreate implements OnInit {
   private emptyToUndefined(value?: string): string | undefined {
     if (!value) return undefined;
     return value?.trim() ? value.trim() : undefined;
+  }
+
+  private handleHttpError(error: any, userMessage: string) {
+    const errMsg = getApplicationErrorMessage(error, userMessage);
+    this.toastService.error(errMsg);
+    console.error(userMessage, error);
   }
 
 }
