@@ -8,5 +8,5 @@ export interface MoneyTransferRequest {
   targetAccountId: number;
   transferAmount: number;
   payment: PaymentRequest;
-  comment?: string;
+  documentDescription?: string;
 } 

@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { PagedResponse } from "../model/paged-response.model";
 import { Observable } from "rxjs";
@@ -11,7 +11,7 @@ import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.m
     providedIn: "root"
 })
 export class DocumentApiService {
-  private httpClient: HttpClient = inject(HttpClient);
+  private readonly httpClient: HttpClient = inject(HttpClient);
   private readonly baseUrl = `${environment.documentApiUrl}/documents`;
 
   getDocuments(pageNumber: number, pageSize: number, orderBy: string, orderDirection: string): Observable<PagedResponse<Document>> {
@@ -25,12 +25,12 @@ export class DocumentApiService {
     return this.httpClient.get<PagedResponse<Document>>(`${this.baseUrl}`, { params });
   }
 
-  createDocument(request: CreateDocumentRequest) : Observable<void> {
-    return this.httpClient.post<void>(`${this.baseUrl}`, request);
+  createDocument(request: CreateDocumentRequest) : Observable<HttpResponse<void>> {
+    return this.httpClient.post<void>(`${this.baseUrl}`, request, { observe: 'response' });
   }
 
-  createTransfer(request: MoneyTransferRequest) : Observable<void> {
-    return this.httpClient.post<void>(`${this.baseUrl}`, request);
+  createTransfer(request: MoneyTransferRequest) : Observable<HttpResponse<void>> {
+    return this.httpClient.post<void>(`${this.baseUrl}`, request, { observe: 'response' });
   }
 
   searchDocuments(property: string, pattern: string) {

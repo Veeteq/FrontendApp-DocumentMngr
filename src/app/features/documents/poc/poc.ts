@@ -8,14 +8,16 @@ import { DocumentNameAutocompleteComponent } from '../../autocomplete/documentna
 import { ItemAutocompleteComponent } from '../../autocomplete/item/item-autocomplete';
 import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment/item-comment-autocomplete';
 import { NumberInputComponent } from '../../common/numberinput/number-input';
+import { ToastService } from '../../common/toast/toast.service';
 import { Account } from '../model/account.model';
-import { Counterparty } from '../model/counterparty.model';
 import { DocumentItem } from '../model/document-item.model';
 import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-import { ToastService } from '../../../core/toast/toast.service';
+import { finalize } from 'rxjs';
+import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
+
 
 @Component({
   selector: 'app-poc',
@@ -28,14 +30,14 @@ import { ToastService } from '../../../core/toast/toast.service';
     ItemAutocompleteComponent,
     ItemCommentAutocompleteComponent,
     NumberInputComponent,
-],
+  ],
   templateUrl: './poc.html',
   styleUrl: './poc.css',
 })
 export class Poc implements OnInit {
   private readonly repository = inject(DocumentRepositoryService);
-  private readonly documentApi = inject(DocumentApiService);
   private readonly numberFormatService = inject(NumberFormatService);
+  private readonly documentApi = inject(DocumentApiService);
   private readonly toastService = inject(ToastService);
 
   // Temporary reference data
@@ -43,9 +45,9 @@ export class Poc implements OnInit {
   readonly paymentMethods = ['CASH', 'CREDITCARD', 'DEBITCARD', 'BANKTRANSFER'];
   readonly currencies = ['PLN', 'EUR', 'USD', 'GBP'];
 
-  readonly validationErrors = signal<string[]>([]);
-
+  readonly creating = signal(false);
   readonly draft = this.repository.draft;
+  readonly validationErrors = signal<string[]>([]);
 
   ngOnInit(): void {
     this.repository.initDocument({
@@ -71,7 +73,7 @@ export class Poc implements OnInit {
       paymentMethod: account.defaultPaymentMethod,
     });
   }
-  
+
   onCommentChanged(comment: string) {
     console.log('onCommentChanged: ' + comment);
     const draft = this.repository.draft();
@@ -94,7 +96,8 @@ export class Poc implements OnInit {
     this.repository.updateDraft({
       counterparty: {
         counterpartyId: counterparty.id,
-        counterpartyName: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
+        counterpartyName:
+          counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
         displayName: counterparty.displayName,
       },
     });
@@ -110,7 +113,7 @@ export class Poc implements OnInit {
   onExchangeRateChange(value: string) {
     this.exchangeRateInput = value;
     const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {      
+    if (parsed == null) {
       return;
     }
     this.repository.updateDraft({ exchangeRate: parsed });
@@ -120,7 +123,7 @@ export class Poc implements OnInit {
   onItemQuantityChange(value: string) {
     this.itemQuantityInput = value;
     const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {      
+    if (parsed == null) {
       return;
     }
     this.updateDocumentItem({ itemQuantity: parsed });
@@ -130,7 +133,7 @@ export class Poc implements OnInit {
   onItemPriceChange(value: string) {
     this.itemPriceInput = value;
     const parsed = this.numberFormatService.parse(value);
-    if (parsed == null) {      
+    if (parsed == null) {
       return;
     }
     this.updateDocumentItem({ itemPrice: parsed });
@@ -195,6 +198,8 @@ export class Poc implements OnInit {
   }
 
   submit() {
+    if (this.creating()) return;
+
     const document = this.repository.draft();
     if (!document) return;
 
@@ -212,17 +217,20 @@ export class Poc implements OnInit {
     console.log('submit: ' + JSON.stringify(request, null, 2));
 
     //Send request to API
-    this.documentApi.createDocument(request)
-    .subscribe({ 
-      next: () => {
-        this.toastService.success('Document created successfully');
-        console.log('Document created successfully')
-      },    
-      error: error => {
-        this.toastService.error('Error creating document');
-        console.error('Error creating document', error);
-      }
-    });
+    this.creating.set(true);
+    this.documentApi
+      .createDocument(request)
+      .pipe(finalize(() => this.creating.set(false)))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Document created successfully');
+          console.log('Document created successfully');
+          this.resetForm();
+        },
+        error: (error) => {
+          this.handleHttpError(error, 'Unable to create document');
+        },
+      });
   }
 
   resetForm(): void {
@@ -246,7 +254,7 @@ export class Poc implements OnInit {
     const type = this.repository.draft()?.documentType;
     return type === 'Invoice';
   }
-  
+
   isExchangeRateEditable(): boolean {
     const accountCurrency = this.repository.draft()?.account?.accountCurrency;
     const documentCurrency = this.repository.draft()?.currencyCode;
@@ -254,7 +262,7 @@ export class Poc implements OnInit {
       return true;
     }
     return accountCurrency !== documentCurrency;
-  }  
+  }
 
   private initDocumentItem() {
     const draft = this.repository.draft();
@@ -348,4 +356,9 @@ export class Poc implements OnInit {
     return value?.trim() ? value.trim() : undefined;
   }
 
+  private handleHttpError(error: unknown, fallback: string) {
+    const errorMessage = getApplicationErrorMessage(error, fallback);
+    this.toastService.error(errorMessage);
+    console.error(fallback, error);
+  }
 }

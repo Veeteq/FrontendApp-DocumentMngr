@@ -2,6 +2,9 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DocumentApiService } from '../service/document-api.service';
 import { PagedResponse } from '../model/paged-response.model';
 import { Document } from '../model/document.model';
+import { ApplicationHttpError, getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
+import { ToastService } from '../../common/toast/toast.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-list',
@@ -11,10 +14,10 @@ import { Document } from '../model/document.model';
 })
 export class List implements OnInit {
   private readonly api = inject(DocumentApiService);
+  private readonly toastService = inject(ToastService);
 
   /** UI state */
   readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
 
   /** Pagination */
   readonly page = signal(1);
@@ -30,19 +33,26 @@ export class List implements OnInit {
   }
   
   loadDocuments() {
-    this.loading.set(true);
-    this.error.set(null);
+    this.loading.set(true);    
 
-    this.api.getDocuments(this.page(), this.pageSize, this.orderBy(), this.orderDirection()).subscribe({
+    this.api.getDocuments(this.page(), this.pageSize, this.orderBy(), this.orderDirection())
+    .pipe(
+      finalize(() => this.loading.set(false))
+    )
+    .subscribe({
       next: (response) => {
         this.result.set(response);
-        this.loading.set(false);
       },
-      error: (err) => {
-        this.error.set(err.message);
-        this.loading.set(false);
+      error: (error: ApplicationHttpError) => {
+        this.handleHttpError(error, 'Failed to load documents');
+
       }
     });
   }
 
+  private handleHttpError(error: unknown, fallback: string) {
+    const errorMessage = getApplicationErrorMessage(error, fallback);
+    this.toastService.error(errorMessage);
+    console.error(fallback, error);
+  }
 }
