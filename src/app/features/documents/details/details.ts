@@ -11,7 +11,7 @@ import { DocumentApiService } from "../service/document-api.service";
 @Component({
   selector: 'app-details',
   imports: [RouterLink],
-  templateUrl: './details1.html',
+  templateUrl: './details.html',
   styleUrl: './details.css',
 })
 export class Details implements OnInit {
