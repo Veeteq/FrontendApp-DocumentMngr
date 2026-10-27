@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
 import { finalize } from 'rxjs';
+import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
@@ -17,7 +18,7 @@ import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
+
 
 @Component({
   selector: 'app-document-create',
@@ -42,6 +43,7 @@ export class DocumentCreate implements OnInit {
   private readonly documentApi = inject(DocumentApiService);
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   // Temporary reference data
   readonly documentTypes = ['NOTE', 'Bill', 'INVOICE', 'TRANSFER'];
@@ -189,20 +191,27 @@ export class DocumentCreate implements OnInit {
       console.error('Validation errors', errors);
       return;
     }
+
+    // Convert to request DTO
     const request = this.toCreateDocumentRequest(document);
-    this.creating.set(true);
 
     //Send request to API
+    this.creating.set(true);
     this.documentApi
       .createDocument(request)
-      .pipe(
-        finalize(() => this.creating.set(false))
-      )
+      .pipe(finalize(() => this.creating.set(false)))
       .subscribe({
         next: (response) => {
           const location = response.headers.get('Location');
           console.log('Document created at: ' + location);
           this.toastService.success('Document created successfully');
+
+          const documentId = this.extractDocumentId(location);
+          if (documentId != null) {
+            this.router.navigate(['/documents/details', documentId]);
+            return;
+          }
+
           this.resetForm();
         },
         error: (error) => {
@@ -212,6 +221,8 @@ export class DocumentCreate implements OnInit {
   }
 
   resetForm() {
+    this.validationErrors.set([]);
+
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
       documentType: 'Bill',
@@ -327,6 +338,7 @@ export class DocumentCreate implements OnInit {
       })),
     };
   }
+
   private emptyToUndefined(value?: string): string | undefined {
     if (!value) return undefined;
     return value?.trim() ? value.trim() : undefined;
@@ -338,4 +350,10 @@ export class DocumentCreate implements OnInit {
     console.error(userMessage, error);
   }
 
+  private extractDocumentId(location: string | null): number | null {
+    if (!location) return null;
+    const lastSegment = location.split('/').filter(Boolean).pop();
+    const documentId = Number(lastSegment);
+    return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
+  }
 }

@@ -1,14 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { DocumentApiService } from '../service/document-api.service';
-import { PagedResponse } from '../model/paged-response.model';
-import { Document } from '../model/document.model';
+import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { ApplicationHttpError, getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
 import { ToastService } from '../../common/toast/toast.service';
-import { finalize } from 'rxjs';
+import { Document } from '../model/document.model';
+import { PagedResponse } from '../model/paged-response.model';
+import { DocumentApiService } from '../service/document-api.service';
 
 @Component({
   selector: 'app-list',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './list.html',
   styleUrl: './list.css',
 })

@@ -6,7 +6,7 @@ export const documentsRoutes: Routes = [
     path: '', component: DocumentsMenu,
     children: [
       { path: '', redirectTo: 'list', pathMatch: 'full' },
-      { path: 'details/:id', loadComponent: () => import('../documents/list/list').then(m => m.List) },
+      { path: 'details/:id', loadComponent: () => import('./details/details').then(m => m.Details) },
       { path: 'upload',      loadComponent: () => import('../documents/list/list').then(m => m.List) },      
       { path: 'new',         loadComponent: () => import('./create/document-create').then(m => m.DocumentCreate) },
       { path: 'list',        loadComponent: () => import('../documents/list/list').then(m => m.List) },

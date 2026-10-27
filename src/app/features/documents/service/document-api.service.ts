@@ -41,4 +41,8 @@ export class DocumentApiService {
 
     return this.httpClient.get<string[]>(`${this.baseUrl}/search`, { params });
   }
+
+  getDocument(documentId: number): Observable<Document> {
+    return this.httpClient.get<Document>(`${this.baseUrl}/${documentId}`);
+  }
 }
