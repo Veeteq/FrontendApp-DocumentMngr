@@ -27,8 +27,8 @@
       <div class="col-span-2">
         <label class="block text-xs font-medium mb-1">Type</label>
         <select name="documentType" class="w-full border border-gray-300 rounded px-3 py-0.5" [ngModel]="draft()?.documentType" (ngModelChange)="updateDraft({ documentType: $event })">
-          @for (type of documentTypes; track type) {
-            <option [value]="type">{{ type }}</option>
+          @for (documentType of documentTypes; track documentType) {
+            <option [value]="documentType">{{ documentType }}</option>
           }
         </select>
       </div>
@@ -56,7 +56,7 @@
   
       <div class="col-span-8">
         <label class="block text-xs font-medium mb-1">Counterparty</label>
-        <app-counterparty-autocomplete [disabled]="!isCounterpartyEnabled()" (counterpartySelected)="onCounterpartySelected($event)" />
+        <app-counterparty-autocomplete (counterpartySelected)="onCounterpartySelected($event)" [disabled]="!isCounterpartyEnabled()"/>
       </div>
     </div>
   

@@ -1,4 +1,5 @@
 import { Injectable, signal } from "@angular/core";
+import { DocumentType } from "../model/document-type.model";
 import { Document } from "../model/document.model";
 
 @Injectable({
@@ -21,12 +22,12 @@ export class DocumentRepositoryService {
 
     const document: Document = {
       documentDate: base.documentDate ?? now.substring(0, 10),
-      documentType: base.documentType ?? '',
+      documentType: base.documentType  ?? DocumentType.BILL,
       documentName: base.documentName ?? '',
       documentComment: base.documentComment,
 
       account: base.account,
-      paymentMethod: base.paymentMethod ?? '',
+      paymentMethod: base.paymentMethod!,
       currencyCode: base.currencyCode ?? 'PLN',
       exchangeRate: base.exchangeRate ?? 1,
 

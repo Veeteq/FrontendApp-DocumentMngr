@@ -14,11 +14,12 @@ import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { ToastService } from '../../common/toast/toast.service';
 import { Account } from '../model/account.model';
 import { DocumentItem } from '../model/document-item.model';
+import { DocumentType } from '../model/document-type.model';
 import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
+import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-
 
 @Component({
   selector: 'app-document-create',
@@ -46,8 +47,17 @@ export class DocumentCreate implements OnInit {
   private readonly router = inject(Router);
 
   // Temporary reference data
-  readonly documentTypes = ['NOTE', 'Bill', 'INVOICE', 'TRANSFER'];
-  readonly paymentMethods = ['CASH', 'CREDITCARD', 'DEBITCARD', 'BANKTRANSFER'];
+  readonly documentTypes = [
+    DocumentType.NOTE, 
+    DocumentType.BILL, 
+    DocumentType.INVOICE
+  ];
+  readonly paymentMethods = [
+    PaymentMethod.CASH, 
+    PaymentMethod.CREDIT_CARD, 
+    PaymentMethod.DEBIT_CARD, 
+    PaymentMethod.BANK_TRANSFER
+  ];
   readonly currencies = ['PLN', 'EUR', 'USD', 'GBP'];
 
   // UI state
@@ -64,9 +74,9 @@ export class DocumentCreate implements OnInit {
   ngOnInit(): void {
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
-      documentType: 'Bill',
+      documentType: DocumentType.BILL,
       documentName: '',
-      paymentMethod: '',
+      //paymentMethod: '',
       currencyCode: 'PLN',
       exchangeRate: 1,
       documentComment: '',
@@ -105,9 +115,8 @@ export class DocumentCreate implements OnInit {
   onCounterpartySelected(counterparty: any) {
     this.repository.updateDraft({
       counterparty: {
-        counterpartyId: counterparty.id,
-        counterpartyName:
-          counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
+        id: counterparty.id,
+        name: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
         displayName: counterparty.displayName,
       },
     });
@@ -225,9 +234,9 @@ export class DocumentCreate implements OnInit {
 
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
-      documentType: 'Bill',
+      documentType: DocumentType.BILL,
       documentName: '',
-      paymentMethod: '',
+      //paymentMethod: '',
       currencyCode: 'PLN',
       exchangeRate: 1,
       documentComment: '',
@@ -237,12 +246,12 @@ export class DocumentCreate implements OnInit {
 
   isCounterpartyEnabled(): boolean {
     const type = this.repository.draft()?.documentType;
-    return type === 'INVOICE' || type === 'Bill';
+    return type === DocumentType.BILL || type === DocumentType.INVOICE;
   }
 
   isInvoiceNumberEnabled(): boolean {
     const type = this.repository.draft()?.documentType;
-    return type === 'INVOICE';
+    return type === DocumentType.INVOICE;
   }
 
   isExchangeRateEditable(): boolean {
@@ -283,14 +292,11 @@ export class DocumentCreate implements OnInit {
     if (!document.documentDate) errors.push('Document date is required');
 
     // Counterparty
-    if (
-      (document.documentType === 'BILL' || document.documentType === 'INVOICE') &&
-      !document.counterparty
-    )
+    if ((document.documentType === DocumentType.BILL || document.documentType === DocumentType.INVOICE) && !document.counterparty)
       errors.push('Counterparty is required');
 
     // Invoice
-    if (document.documentType === 'INVOICE' && !document.invoiceNumber?.trim())
+    if (document.documentType === DocumentType.INVOICE && !document.invoiceNumber?.trim())
       errors.push('Invoice number is required');
 
     // Payment
@@ -323,7 +329,7 @@ export class DocumentCreate implements OnInit {
       documentDescription: this.emptyToUndefined(document.documentComment),
       invoiceNumber: this.emptyToUndefined(document.invoiceNumber),
       accountId: document.account!.accountId,
-      counterpartyId: document.counterparty?.counterpartyId,
+      counterpartyId: document.counterparty?.id,
       payment: {
         paymentMethod: document.paymentMethod,
         currencyCode: document.currencyCode,

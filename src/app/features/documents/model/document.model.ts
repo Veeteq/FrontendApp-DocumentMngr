@@ -1,11 +1,13 @@
 import { Account } from "./account.model";
 import { Counterparty } from "./counterparty.model";
 import { DocumentItem } from "./document-item.model";
+import { DocumentType } from "./document-type.model";
+import { PaymentMethod } from "./payment-method.model";
 
 export interface Document {
   documentId?: number;
   documentDate: string;            // ISO date (yyyy-MM-dd)
-  documentType: string;
+  documentType: DocumentType;
   documentName: string;
   documentComment?: string;
   invoiceNumber?: string;
@@ -17,7 +19,7 @@ export interface Document {
 
   counterparty?: Counterparty;
 
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
   currencyCode: string;
   exchangeRate: number;
 

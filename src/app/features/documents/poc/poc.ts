@@ -1,6 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
@@ -11,14 +13,14 @@ import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment
 import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { ToastService } from '../../common/toast/toast.service';
 import { Account } from '../model/account.model';
+import { Counterparty } from '../model/counterparty.model';
 import { DocumentItem } from '../model/document-item.model';
+import { DocumentType } from '../model/document-type.model';
 import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
+import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
-import { finalize } from 'rxjs';
-import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
-
 
 @Component({
   selector: 'app-poc',
@@ -44,8 +46,17 @@ export class Poc implements OnInit {
   private readonly router = inject(Router);
 
   // Temporary reference data
-  readonly documentTypes = ['Note', 'Bill', 'Invoice'];
-  readonly paymentMethods = ['CASH', 'CREDITCARD', 'DEBITCARD', 'BANKTRANSFER'];
+  readonly documentTypes = [
+    DocumentType.BILL,
+    DocumentType.NOTE,
+    DocumentType.INVOICE
+  ];
+  readonly paymentMethods = [
+      PaymentMethod.CASH, 
+      PaymentMethod.CREDIT_CARD, 
+      PaymentMethod.DEBIT_CARD, 
+      PaymentMethod.BANK_TRANSFER
+    ];
   readonly currencies = ['PLN', 'EUR', 'USD', 'GBP'];
 
   readonly creating = signal(false);
@@ -55,9 +66,8 @@ export class Poc implements OnInit {
   ngOnInit(): void {
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
-      documentType: 'Bill',
+      documentType: DocumentType.BILL,
       documentName: '',
-      paymentMethod: '',
       currencyCode: 'PLN',
       exchangeRate: 1,
       documentComment: '',
@@ -93,12 +103,11 @@ export class Poc implements OnInit {
     });
   }
 
-  onCounterpartySelected(counterparty: any) {
+  onCounterpartySelected(counterparty: Counterparty) {
     this.repository.updateDraft({
       counterparty: {
-        counterpartyId: counterparty.id,
-        counterpartyName:
-          counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
+        id: counterparty.id,
+        name: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
         displayName: counterparty.displayName,
       },
     });
@@ -216,8 +225,9 @@ export class Poc implements OnInit {
 
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
-      documentType: 'Bill',
+      documentType: DocumentType.BILL,
       documentName: '',
+      //paymentMethod: '',
       currencyCode: 'PLN',
       exchangeRate: 1,
       documentComment: '',
@@ -227,12 +237,12 @@ export class Poc implements OnInit {
 
   isCounterpartyEnabled(): boolean {
     const type = this.repository.draft()?.documentType;
-    return type === 'Invoice' || type === 'Bill';
+    return type === DocumentType.INVOICE || type === DocumentType.BILL;
   }
 
   isInvoiceNumberEnabled(): boolean {
     const type = this.repository.draft()?.documentType;
-    return type === 'Invoice';
+    return type === DocumentType.INVOICE;
   }
 
   isExchangeRateEditable(): boolean {
@@ -273,14 +283,11 @@ export class Poc implements OnInit {
     if (!document.documentDate) errors.push('Document date is required');
 
     // Counterparty
-    if (
-      (document.documentType === 'Bill' || document.documentType === 'Invoice') &&
-      !document.counterparty
-    )
+    if ((document.documentType === DocumentType.BILL || document.documentType === DocumentType.INVOICE) && !document.counterparty)
       errors.push('Counterparty is required');
 
     // Invoice
-    if (document.documentType === 'Invoice' && !document.invoiceNumber?.trim())
+    if (document.documentType === DocumentType.INVOICE && !document.invoiceNumber?.trim())
       errors.push('Invoice number is required');
 
     // Payment
@@ -313,7 +320,7 @@ export class Poc implements OnInit {
       documentDescription: this.emptyToUndefined(document.documentComment),
       invoiceNumber: this.emptyToUndefined(document.invoiceNumber),
       accountId: document.account!.accountId,
-      counterpartyId: document.counterparty?.counterpartyId,
+      counterpartyId: document.counterparty?.id,
       payment: {
         paymentMethod: document.paymentMethod,
         currencyCode: document.currencyCode,
