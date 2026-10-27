@@ -35,6 +35,7 @@
           <th class="px-2 py-2 text-left border-b">Account</th>
           <th class="px-2 py-2 text-left border-b">Counterparty</th>
           <th class="px-2 py-2 text-right border-b">Amount</th>
+          <th class="px-2 py-2 text-right border-b">Actions</th>
         </tr>
       </thead>
 
@@ -60,6 +61,11 @@
             <td class="px-3 py-2 border-b text-right font-semibold">
               {{ doc.documentAmount }}
               {{ doc.currencyCode }}
+            </td>
+            <td>
+              <a class="inline-flex items-center rounded border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50"
+                [routerLink]="['/documents/details', doc.documentId]">Details
+              </a>
             </td>
           </tr>
         }

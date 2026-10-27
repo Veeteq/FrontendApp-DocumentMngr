@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
@@ -22,8 +23,9 @@ import { getApplicationErrorMessage } from '../../../core/auth/http-error.interc
 @Component({
   selector: 'app-poc',
   imports: [
-    FormsModule,
+
     ReactiveFormsModule,
+    FormsModule,
     AccountAutocompleteComponent,
     CounterpartyAutocompleteComponent,
     DocumentNameAutocompleteComponent,
@@ -36,9 +38,10 @@ import { getApplicationErrorMessage } from '../../../core/auth/http-error.interc
 })
 export class Poc implements OnInit {
   private readonly repository = inject(DocumentRepositoryService);
-  private readonly numberFormatService = inject(NumberFormatService);
   private readonly documentApi = inject(DocumentApiService);
+  private readonly numberFormatService = inject(NumberFormatService);
   private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   // Temporary reference data
   readonly documentTypes = ['Note', 'Bill', 'Invoice'];
@@ -166,7 +169,7 @@ export class Poc implements OnInit {
   }
 
   submit() {
-    if (this.creating()) return;
+    if (this.creating()) return; // Prevent multiple submissions
 
     const document = this.repository.draft();
     if (!document) return;
@@ -175,7 +178,7 @@ export class Poc implements OnInit {
     const errors = this.validateDocument();
     this.validationErrors.set(errors);
     if (errors.length > 0) {
-      this.toastService.error('Validation errors: ' + errors.join(', '));
+      this.toastService.error('Please correct the validation errors');
       console.error('Validation errors', errors);
       return;
     }
@@ -193,6 +196,13 @@ export class Poc implements OnInit {
           const location = response.headers.get('Location');
           console.log('Document created at: ' + location);
           this.toastService.success('Document created successfully');
+
+          const documentId = this.extractDocumentId(location);
+          if (documentId != null) {
+            this.router.navigate(['/documents/details', documentId]);
+            return;
+          }
+
           this.resetForm();
         },
         error: (error) => {
@@ -201,14 +211,16 @@ export class Poc implements OnInit {
       });
   }
 
-  resetForm(): void {
+  resetForm() {
     this.validationErrors.set([]);
 
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
       documentType: 'Bill',
+      documentName: '',
       currencyCode: 'PLN',
       exchangeRate: 1,
+      documentComment: '',
     });
     this.initDocumentItem();
   }
@@ -321,9 +333,16 @@ export class Poc implements OnInit {
     return value?.trim() ? value.trim() : undefined;
   }
 
-  private handleHttpError(error: unknown, fallback: string) {
-    const errorMessage = getApplicationErrorMessage(error, fallback);
-    this.toastService.error(errorMessage);
-    console.error(fallback, error);
+  private handleHttpError(error: any, userMessage: string) {
+    const errMsg = getApplicationErrorMessage(error, userMessage);
+    this.toastService.error(errMsg);
+    console.error(userMessage, error);
+  }
+
+  private extractDocumentId(location: string | null): number | null {
+    if (!location) return null;
+    const lastSegment = location.split('/').filter(Boolean).pop();
+    const documentId = Number(lastSegment);
+    return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
   }
 }

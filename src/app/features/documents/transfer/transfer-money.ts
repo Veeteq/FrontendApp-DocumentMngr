@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
 import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.model";
@@ -20,9 +21,10 @@ import { TransferRepositoryService } from "../service/money-transfer-repository.
 })
 export class TransferMoney implements OnInit {
   private readonly repository = inject(TransferRepositoryService);
-  private readonly numberFormatService = inject(NumberFormatService);
   private readonly documentApi = inject(DocumentApiService);
+  private readonly numberFormatService = inject(NumberFormatService);
   private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   // Temporary reference data
   readonly paymentMethods = ['ATMWITHDRAWAL', 'ATMDEPOSIT', 'CASH', 'BANKTRANSFER'];
@@ -106,14 +108,19 @@ export class TransferMoney implements OnInit {
     this.creating.set(true);
     this.documentApi
       .createTransfer(request)
-      .pipe(
-        finalize(() => this.creating.set(false))
-      )
+      .pipe(finalize(() => this.creating.set(false)))
       .subscribe({
         next: (response) => {
           const location = response.headers.get('location');
           console.log('Created resource:', location);
           this.toastService.success('Transfer created successfully');
+
+          const documentId = this.extractDocumentId(location);
+          if (documentId != null) {
+            this.router.navigate(['/documents/details', documentId]);
+            return;
+          }
+
           this.resetForm();
         },
         error: (error) => {
@@ -211,5 +218,12 @@ export class TransferMoney implements OnInit {
     const message = getApplicationErrorMessage(error, fallback);
     this.toastService.error(message);
     console.error(fallback, error);
+  }
+
+  private extractDocumentId(location: string | null): number | null {
+    if (!location) return null;
+    const lastSegment = location.split('/').filter(Boolean).pop();
+    const documentId = Number(lastSegment);
+    return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
   }
 }
