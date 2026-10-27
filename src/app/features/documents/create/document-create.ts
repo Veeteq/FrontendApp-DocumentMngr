@@ -263,6 +263,10 @@ export class DocumentCreate implements OnInit {
     return accountCurrency !== documentCurrency;
   }
 
+  hasValidationError(message: string): boolean {
+    return this.validationErrors().includes(message);
+  }
+
   private initDocumentItem() {
     const draft = this.repository.draft();
     if (!draft) return;

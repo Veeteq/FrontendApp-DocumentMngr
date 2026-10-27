@@ -42,6 +42,9 @@
       <div class="col-span-4">
         <label class="block text-xs font-medium mb-1">Account</label>
         <app-account-autocomplete [value]="draft()?.account" (accountSelected)="onAccountSelected($event)"/>
+        @if (hasValidationError('Account is required')) {
+          <p class="mt-1 text-xs text-red-600">Account is required</p>
+        }
       </div>
       <div class="col-span-8">
         <label class="block text-xs font-medium mb-1 disabled:text-gray-400">Counterparty</label>
