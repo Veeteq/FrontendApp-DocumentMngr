@@ -1,8 +1,10 @@
+import { PaymentMethod } from "./payment-method.model";
+
 export interface Account {
   accountId: number;
   accountName: string;
   accountDescription?: string;
   accountCurrency: string;
   accountImageUrl?: string;
-  defaultPaymentMethod: string;
+  defaultPaymentMethod: PaymentMethod;
 }

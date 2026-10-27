@@ -1,11 +1,12 @@
 import { Component, inject, OnInit, signal } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { ToastService } from "../../common/toast/toast.service";
-import { DocumentApiService } from "../service/document-api.service";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
-import { Document } from "../model/document.model";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
+import { ToastService } from "../../common/toast/toast.service";
+import { DocumentType } from "../model/document-type.model";
+import { Document } from "../model/document.model";
+import { DocumentApiService } from "../service/document-api.service";
 
 @Component({
   selector: 'app-details',
@@ -82,6 +83,6 @@ export class Details implements OnInit {
   }
 
   isMoneyTransfer(document: Document): boolean {
-    return document.documentType?.toUpperCase() === 'TRANSFER';
+    return document.documentType?.toUpperCase() === DocumentType.TRANSFER;
   }
 }

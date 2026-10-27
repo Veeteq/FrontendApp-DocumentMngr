@@ -9,7 +9,9 @@ import { AccountAutocompleteComponent } from "../../autocomplete/account/account
 import { NumberInputComponent } from "../../common/numberinput/number-input";
 import { ToastService } from "../../common/toast/toast.service";
 import { Account } from "../model/account.model";
+import { DocumentType } from "../model/document-type.model";
 import { MoneyTransfer } from '../model/money-transfer.model';
+import { PaymentMethod } from "../model/payment-method.model";
 import { DocumentApiService } from "../service/document-api.service";
 import { TransferRepositoryService } from "../service/money-transfer-repository.service";
 
@@ -27,7 +29,12 @@ export class TransferMoney implements OnInit {
   private readonly router = inject(Router);
 
   // Temporary reference data
-  readonly paymentMethods = ['ATMWITHDRAWAL', 'ATMDEPOSIT', 'CASH', 'BANKTRANSFER'];
+  readonly paymentMethods = [
+      PaymentMethod.CASH, 
+      PaymentMethod.ATM_WITHDRAWAL, 
+      PaymentMethod.ATM_DEPOSIT, 
+      PaymentMethod.BANK_TRANSFER
+    ];
 
   readonly creating = signal(false);
   readonly draft = this.repository.draft;
@@ -196,7 +203,7 @@ export class TransferMoney implements OnInit {
   private toMoneyTransferRequest(document: MoneyTransfer): MoneyTransferRequest {
     return {
       documentDate: document.transferDate,
-      documentType: 'Transfer',
+      documentType: DocumentType.TRANSFER,
       accountId: document.sourceAccount!.accountId,
       targetAccountId: document.targetAccount!.accountId,
       transferAmount: document.transferAmount!,
