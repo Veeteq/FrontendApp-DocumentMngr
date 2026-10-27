@@ -31,18 +31,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
+      let sessionExpiredHandled = false;
 
       // Only 401 means that we should try to refresh the access token.
       if (error.status !== 401) return throwError(() => error);
 
       return authService.refreshTokenShared()
-      .pipe(
+      .pipe(        
         //refreshToken() already updates AuthStore. We only need to read the new token here.
         switchMap(() => {
           const newToken = authStore.accessToken();
+          
 
           //Refresh succeeded but there is no token. Treat this as an expired session.
           if (!newToken) {
+            sessionExpiredHandled = true;
             authService.handleSessionExpired();
             return throwError(() => error);
           }
@@ -62,7 +65,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
          * another HTTP request and would go through this interceptor.
          */
         catchError((refreshError) => {
-          authService.handleSessionExpired();
+          if (!sessionExpiredHandled) {
+            authService.handleSessionExpired();
+          }
           return throwError(() => refreshError);
         })
       );
