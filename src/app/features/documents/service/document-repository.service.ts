@@ -1,6 +1,6 @@
 import { Injectable, signal } from "@angular/core";
 import { DocumentType } from "../model/document-type.model";
-import { Document } from "../model/document.model";
+import { DocumentDraft } from "../model/document-draft.model";
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +8,7 @@ import { Document } from "../model/document.model";
 export class DocumentRepositoryService {
 
   /** Internal signal holding the draft document */
-  private readonly _draft = signal<Document | null>(null);
+  private readonly _draft = signal<DocumentDraft | null>(null);
 
    /** Public read-only access to the draft */
   readonly draft = this._draft.asReadonly();
@@ -17,21 +17,24 @@ export class DocumentRepositoryService {
    * Initialize a new empty document draft.
    * This should be called when user starts "New Document".
    */
-  initDocument(base: Partial<Document>) {
+  initDocument(base: Partial<DocumentDraft>) {
     const now = new Date().toISOString();
 
-    const document: Document = {
+    const document: DocumentDraft = {
       documentDate: base.documentDate ?? now.substring(0, 10),
       documentType: base.documentType  ?? DocumentType.BILL,
       documentName: base.documentName ?? '',
-      documentComment: base.documentComment,
+      documentComment: base.documentComment ?? '',
+      invoiceNumber: base.invoiceNumber ?? '',
 
-      account: base.account,
-      paymentMethod: base.paymentMethod!,
+      account: base.account ?? null,
+      counterparty: base.counterparty ?? null,
+      
+      paymentMethod: base.paymentMethod ?? null,
       currencyCode: base.currencyCode ?? 'PLN',
       exchangeRate: base.exchangeRate ?? 1,
 
-      documentItems: []
+      documentItems: base.documentItems ?? [],
     }    
     this._draft.set(document);
   }
@@ -43,14 +46,13 @@ export class DocumentRepositoryService {
    * Update top-level document fields.
    * Does NOT allow replacing entire document.
    */
-  updateDraft(patch: Partial<Document>) {
+  updateDraft(patch: Partial<DocumentDraft>) {
     const current = this._draft();
     if (!current) return;
 
     this._draft.set({
       ...current,
-      ...patch,
-      updateDateTime: new Date().toISOString(),
+      ...patch
     });
   }
 

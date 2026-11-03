@@ -3,6 +3,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
+import { CreateDocumentItemRequest } from '../../../core/dto/create-document-item-request.model';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
@@ -14,9 +15,9 @@ import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { ToastService } from '../../common/toast/toast.service';
 import { Account } from '../model/account.model';
 import { Counterparty } from '../model/counterparty.model';
-import { DocumentItem } from '../model/document-item.model';
+import { DocumentDraft } from '../model/document-draft.model';
+import { DocumentItemDraft } from '../model/document-item-draft.model';
 import { DocumentType } from '../model/document-type.model';
-import { Document } from '../model/document.model';
 import { Item } from '../model/item.model';
 import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
@@ -25,7 +26,6 @@ import { DocumentRepositoryService } from '../service/document-repository.servic
 @Component({
   selector: 'app-poc',
   imports: [
-
     ReactiveFormsModule,
     FormsModule,
     AccountAutocompleteComponent,
@@ -52,30 +52,41 @@ export class Poc implements OnInit {
     DocumentType.INVOICE
   ];
   readonly paymentMethods = [
-      PaymentMethod.CASH, 
-      PaymentMethod.CREDIT_CARD, 
-      PaymentMethod.DEBIT_CARD, 
-      PaymentMethod.BANK_TRANSFER
-    ];
+    PaymentMethod.CASH,
+    PaymentMethod.CREDIT_CARD,
+    PaymentMethod.DEBIT_CARD,
+    PaymentMethod.BANK_TRANSFER
+  ];
   readonly currencies = ['PLN', 'EUR', 'USD', 'GBP'];
 
+  // UI state
+  readonly loading = signal(false);
   readonly creating = signal(false);
-  readonly draft = this.repository.draft;
+  readonly error = signal<string | null>(null);
+  readonly accounts = signal<Account[]>([]);
   readonly validationErrors = signal<string[]>([]);
+
+  readonly draft = this.repository.draft;
 
   ngOnInit(): void {
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
       documentType: DocumentType.BILL,
       documentName: '',
+      documentComment: '',
+      invoiceNumber: '',
+
+      account: null,
+      counterparty: null,
+
+      paymentMethod: null,
       currencyCode: 'PLN',
       exchangeRate: 1,
-      documentComment: '',
     });
     this.initDocumentItem();
   }
 
-  updateDraft(patch: Partial<Document>) {
+  updateDraft(patch: Partial<DocumentDraft>) {
     this.repository.updateDraft(patch);
   }
 
@@ -88,18 +99,8 @@ export class Poc implements OnInit {
   }
 
   onCommentChanged(comment: string) {
-    const draft = this.repository.draft();
-    if (!draft) return;
-    const currentItem = draft.documentItems?.[0];
-    if (!currentItem) return;
-
-    this.repository.updateDraft({
-      documentItems: [
-        {
-          ...currentItem,
-          itemComment: comment,
-        },
-      ],
+    this.updateDocumentItem({
+      itemComment: comment,
     });
   }
 
@@ -119,20 +120,8 @@ export class Poc implements OnInit {
     });
   }
 
-  onItemSelected(item: Item) {
-    const draft = this.repository.draft();
-    if (!draft) return;
-    const currentItem = draft.documentItems?.[0];
-    if (!currentItem) return;
-
-    this.repository.updateDraft({
-      documentItems: [
-        {
-          ...currentItem,
-          item: item,
-        },
-      ],
-    });
+  onItemSelected(item: Item): void {
+    this.updateDocumentItem({ item });
   }
 
   onCurrencyChange(currencyCode: string) {
@@ -150,11 +139,11 @@ export class Poc implements OnInit {
     });
   }
 
-  updateDocumentItem(patch: Partial<DocumentItem>) {
+  updateDocumentItem(patch: Partial<DocumentItemDraft>) {
     const draft = this.repository.draft();
     if (!draft) return;
 
-    const documentItem = draft.documentItems?.[0];
+    const documentItem = draft.documentItems[0];
     if (!documentItem) return;
 
     this.repository.updateDraft({
@@ -227,10 +216,15 @@ export class Poc implements OnInit {
       documentDate: new Date().toISOString().substring(0, 10),
       documentType: DocumentType.BILL,
       documentName: '',
-      //paymentMethod: '',
+      documentComment: '',
+      invoiceNumber: '',
+
+      account: null,
+      counterparty: null,
+
+      paymentMethod: null,
       currencyCode: 'PLN',
       exchangeRate: 1,
-      documentComment: '',
     });
     this.initDocumentItem();
   }
@@ -254,10 +248,14 @@ export class Poc implements OnInit {
     return accountCurrency !== documentCurrency;
   }
 
+  hasValidationError(message: string): boolean {
+    return this.validationErrors().includes(message);
+  }
+
   private initDocumentItem() {
     const draft = this.repository.draft();
     if (!draft) return;
-    if (draft.documentItems?.length > 0) return;
+    if (draft.documentItems.length > 0) return;
 
     this.repository.updateDraft({
       documentItems: [
@@ -265,6 +263,7 @@ export class Poc implements OnInit {
           itemType: 'EXP',
           itemQuantity: 1,
           itemPrice: 0,
+          itemComment: '',
         },
       ],
     });
@@ -287,14 +286,12 @@ export class Poc implements OnInit {
       errors.push('Counterparty is required');
 
     // Invoice
-    if (document.documentType === DocumentType.INVOICE && !document.invoiceNumber?.trim())
-      errors.push('Invoice number is required');
+    if (document.documentType === DocumentType.INVOICE && !document.invoiceNumber?.trim()) errors.push('Invoice number is required');
 
     // Payment
     if (!document.paymentMethod) errors.push('Payment method is required');
     if (!document.currencyCode) errors.push('Currency is required');
-    if (document.exchangeRate == null || document.exchangeRate <= 0)
-      errors.push('Exchange rate must be greater than zero');
+    if (document.exchangeRate == null || document.exchangeRate <= 0) errors.push('Exchange rate must be greater than zero');
 
     // Items
     const items = document.documentItems ?? [];
@@ -303,38 +300,51 @@ export class Poc implements OnInit {
       const itemNo = index + 1;
       if (!item.itemType) errors.push(`Item #${itemNo}: type is required`);
       if (!item.item) errors.push(`Item #${itemNo}: item is required`);
-      if (!item.itemQuantity || item.itemQuantity <= 0)
-        errors.push(`Item #${itemNo}: quantity must be greater than 0`);
-      if (!item.itemPrice || item.itemPrice <= 0)
-        errors.push(`Item #${itemNo}: price must be greater than 0`);
+      if (item.itemQuantity == null || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
+      if (item.itemPrice == null || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
     });
 
     return errors;
   }
 
-  private toCreateDocumentRequest(document: Document): CreateDocumentRequest {
+  private toCreateDocumentRequest(document: DocumentDraft): CreateDocumentRequest {
+    if (!document.account) throw new Error('Account is required');
+    if (!document.documentType) throw new Error('Document type is required');
+    if (!document.paymentMethod) throw new Error('Payment method is required');
+    if (!document.currencyCode) throw new Error('Currency is required');
+    if (document.exchangeRate == null) throw new Error('Exchange rate is required');
+
     return {
       documentDate: document.documentDate,
       documentType: document.documentType,
       documentName: this.emptyToUndefined(document.documentName),
       documentDescription: this.emptyToUndefined(document.documentComment),
       invoiceNumber: this.emptyToUndefined(document.invoiceNumber),
-      accountId: document.account!.accountId,
+      accountId: document.account.accountId,
       counterpartyId: document.counterparty?.id,
       payment: {
         paymentMethod: document.paymentMethod,
         currencyCode: document.currencyCode,
         exchangeRate: document.exchangeRate,
       },
-      documentItems: document.documentItems.map((item) => ({
-        itemType: item.itemType,
-        itemId: item.item!.itemId,
-        itemQuantity: item.itemQuantity,
-        itemPrice: item.itemPrice,
-        itemDescription: this.emptyToUndefined(item.itemComment),
-      })),
+      documentItems: document.documentItems.map((item, index) => this.toCreateDocumentItemRequest(item, index)),
     };
   }
+
+  private toCreateDocumentItemRequest(item: DocumentItemDraft, index: number): CreateDocumentItemRequest {
+    if (!item.itemType) throw new Error(`Item #${index + 1}: type is required`);
+    if (!item.item) throw new Error(`Item #${index + 1}: item is required`);
+    if (item.itemQuantity == null || item.itemQuantity <= 0) throw new Error(`Item #${index + 1}: quantity must be greater than 0`);
+    if (item.itemPrice == null || item.itemPrice <= 0) throw new Error(`Item #${index + 1}: price must be greater than 0`);
+    return {
+      itemType: item.itemType,
+      itemId: item.item!.itemId,
+      itemQuantity: item.itemQuantity,
+      itemPrice: item.itemPrice,
+      itemDescription: this.emptyToUndefined(item.itemComment),
+    };
+  }
+
   private emptyToUndefined(value?: string): string | undefined {
     if (!value) return undefined;
     return value?.trim() ? value.trim() : undefined;

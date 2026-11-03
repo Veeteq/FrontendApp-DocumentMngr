@@ -10,7 +10,7 @@ import { NumberInputComponent } from "../../common/numberinput/number-input";
 import { ToastService } from "../../common/toast/toast.service";
 import { Account } from "../model/account.model";
 import { DocumentType } from "../model/document-type.model";
-import { MoneyTransfer } from '../model/money-transfer.model';
+import { MoneyTransferDraft, ProvisionAt } from '../model/money-transfer-draft.model';
 import { PaymentMethod } from "../model/payment-method.model";
 import { DocumentApiService } from "../service/document-api.service";
 import { TransferRepositoryService } from "../service/money-transfer-repository.service";
@@ -47,7 +47,7 @@ export class TransferMoney implements OnInit {
     });
   }
 
-  updateDraft(patch: Partial<MoneyTransfer>) {
+  updateDraft(patch: Partial<MoneyTransferDraft>) {
     this.repository.updateDraft(patch);
   }
 
@@ -68,7 +68,7 @@ export class TransferMoney implements OnInit {
     const provisionAmount = this.draft()?.provisionAmount ?? 0;
     const provisionAt = this.draft()?.provisionAt;
 
-    if (provisionAt === 'SOURCE') {
+    if (provisionAt === ProvisionAt.SOURCE) {
       return Math.max(transferAmount - provisionAmount, 0);
     }
 
@@ -82,7 +82,7 @@ export class TransferMoney implements OnInit {
 
     let result = exchangedAmount / exchangeRate;
 
-    if (this.draft()?.provisionAt === 'TARGET') {
+    if (this.draft()?.provisionAt === ProvisionAt.TARGET) {
       result -= this.draft()?.provisionAmount ?? 0;
     }
 
@@ -169,14 +169,10 @@ export class TransferMoney implements OnInit {
       errors.push('Source and target account must be different');
 
     // Amounts
-    if (transfer.transferAmount == null || transfer.transferAmount <= 0)
-      errors.push('Transfer amount must be greater than 0');
-    if (transfer.exchangeRate == null || transfer.exchangeRate <= 0)
-      errors.push('Exchange rate must be greater than 0');
-    if (transfer.provisionAmount != null && transfer.provisionAmount < 0)
-      errors.push('Provision amount cannot be negative');
-    if (transfer.provisionAmount != null && transfer.provisionAmount > 0 && !transfer.provisionAt)
-      errors.push('Provision location is required when provision amount is entered');
+    if (transfer.transferAmount == null || transfer.transferAmount <= 0) errors.push('Transfer amount must be greater than 0');
+    if (transfer.exchangeRate == null || transfer.exchangeRate <= 0) errors.push('Exchange rate must be greater than 0');
+    if (transfer.provisionAmount != null && transfer.provisionAmount < 0) errors.push('Provision amount cannot be negative');
+    if (transfer.provisionAmount != null && transfer.provisionAmount > 0 && !transfer.provisionAt) errors.push('Provision location is required when provision amount is entered');
 
     // Currency consistency
     const sourceCurrency = transfer.sourceAccount?.accountCurrency;
@@ -197,20 +193,29 @@ export class TransferMoney implements OnInit {
     )
       errors.push('Exchange rate should not be 1 when accounts use different currencies');
 
+    if (!transfer.paymentMethod) errors.push('Payment method is required');
+
     return errors;
   }
 
-  private toMoneyTransferRequest(document: MoneyTransfer): MoneyTransferRequest {
+  private toMoneyTransferRequest(document: MoneyTransferDraft): MoneyTransferRequest {
+    //defensive transfer mapper guards
+    if (!document.sourceAccount) throw new Error('Source account is required');
+    if (!document.targetAccount) throw new Error('Target account is required');
+    if (document.transferAmount == null) throw new Error('Transfer amount is required');
+    if (!document.paymentMethod) throw new Error('Payment method is required');
+    if (document.exchangeRate == null) throw new Error('Exchange rate is required');
+
     return {
       documentDate: document.transferDate,
       documentType: DocumentType.TRANSFER,
-      accountId: document.sourceAccount!.accountId,
-      targetAccountId: document.targetAccount!.accountId,
-      transferAmount: document.transferAmount!,
+      accountId: document.sourceAccount.accountId,
+      targetAccountId: document.targetAccount.accountId,
+      transferAmount: document.transferAmount,
       documentDescription: this.emptyToUndefined(document.comment),
       payment: {
-        paymentMethod: document.paymentMethod!,
-        currencyCode: document.targetAccount!.accountCurrency,
+        paymentMethod: document.paymentMethod,
+        currencyCode: document.targetAccount.accountCurrency,
         exchangeRate: document.exchangeRate,
       },
     };
