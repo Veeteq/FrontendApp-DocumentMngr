@@ -1,11 +1,11 @@
 import { Item } from "./item.model";
 
 export interface DocumentItem {
-  documentItemId?: number;
+  documentItemId: number;
   itemType: string;
-  item?: Item;
+  item: Item;
   itemQuantity: number;
   itemPrice: number;
   itemComment?: string;
-  version?: number;
+  version: number;
 }

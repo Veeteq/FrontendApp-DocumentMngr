@@ -16,7 +16,7 @@ export class AccountAutocompleteComponent {
   private readonly accountApi = inject(AccountApiService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly value = input<Account | undefined>();
+  readonly value = input<Account | null>();
   readonly accountSelected = output<Account>();
 
   readonly searchText = signal('');
