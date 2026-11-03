@@ -3,7 +3,7 @@
   <!-- Document Header Panel -->
   <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
   
-    <h2 class="text-sm font-semibold text-gray-700 mb-2">Document Header</h2>
+    <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Header</h2>
 
     <!-- Date | Type | Document Name | Invoice Number -->
     <div class="grid grid-cols-12 gap-4">
@@ -21,10 +21,16 @@
             <option value="{{ documentType }}">{{ documentType }}</option>
           }
         </select>
+        @if (hasValidationError('Document type is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Document type is required</p>
+        }
       </div>    
       <div class="col-span-5">
         <label class="block text-xs font-medium mb-1">Document name</label>
         <app-document-name-autocomplete (nameChanged)="onDocumentNameChanged($event)"/>
+        @if (hasValidationError('Document name is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Document name is required</p>
+        }
       </div>
 
       <div class="col-span-3">
@@ -42,17 +48,23 @@
       <div class="col-span-4">
         <label class="block text-xs font-medium mb-1">Account</label>
         <app-account-autocomplete [value]="draft()?.account" (accountSelected)="onAccountSelected($event)"/>
+        @if (hasValidationError('Account is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Account is required</p>
+        }
       </div>
       <div class="col-span-8">
         <label class="block text-xs font-medium mb-1 disabled:text-gray-400">Counterparty</label>
         <app-counterparty-autocomplete (counterpartySelected)="onCounterpartySelected($event)" [disabled]="!isCounterpartyEnabled()"/>
+        @if (hasValidationError('Counterparty is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Counterparty is required</p>
+        }
       </div>  
     </div>
   </div>
 
   <!-- Document Item Panel -->
   <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <h2 class="text-sm font-semibold text-gray-700 mb-2">Document Item</h2>
+    <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Item</h2>
 
     <!-- Header row -->
     <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded px-2 pt-1">
@@ -76,6 +88,9 @@
   
       <div class="col-span-4">
         <app-item-autocomplete [value]="draft()?.documentItems?.[0]?.item" (itemSelected)="onItemSelected($event)"/>
+        @if (hasValidationError('Item #1: item is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Item is required</p>
+        }
       </div>
 
       <div class="col-span-1">
@@ -94,6 +109,9 @@
           [minimum]="0.01" 
           [required]="true"
           (valueChange)="updateDocumentItem({ itemPrice: $event ?? 0 })" />
+        @if (hasValidationError('Item #1: price must be greater than 0')) {
+          <p class="mt-1 text-[11px] text-red-600">Price must be greater than 0</p>
+        }
       </div>
   
       <div class="col-span-3">
@@ -110,9 +128,12 @@
     </div>
   </div>
 
-  <!-- Payment Row -->
+  <!-- Other properties Panel -->
   <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <div class="grid grid-cols-12 gap-4">
+    <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Other properties</h2>
+
+    <!-- Payment Row -->
+    <div class="grid grid-cols-12 gap-4 mt-3">
       <div class="col-span-5">
         <label class="block text-xs font-medium mb-1">Payment Method</label>
         <select name="paymentMethod" class="w-full border border-gray-300 rounded px-3 py-0.5" required
@@ -146,16 +167,17 @@
           (valueChange)="updateDraft({ exchangeRate: $event ?? 1 })" />          
       </div>
     </div>
-  </div>
-
-  <!-- Document Comment Panel -->
-  <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <label class="block text-xs font-medium mb-1">Document Comment</label>
-
-    <textarea rows="2" name="documentComment" class="w-full border border-gray-300 rounded px-3 py-0.5"
-      [ngModel]="draft()?.documentComment"
-      (ngModelChange)="updateDraft({ documentComment: $event })">
-    </textarea>
+  
+    <!-- Document Comment Row -->  
+    <div class="grid grid-cols-12 gap-4 mt-3">
+      <div class="col-span-12">
+        <label class="block text-xs font-medium mb-1">Document Comment</label>
+        <textarea rows="2" name="documentComment" class="w-full border border-gray-300 rounded px-3 py-0.5"
+          [ngModel]="draft()?.documentComment"
+          (ngModelChange)="updateDraft({ documentComment: $event })">
+        </textarea>
+      </div>
+    </div>
   </div>
 
   <!-- Action Panel -->
