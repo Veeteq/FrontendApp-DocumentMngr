@@ -2,7 +2,8 @@
 
   <!-- Document Header Panel -->
   <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-  
+
+    <!-- Header -->
     <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Header</h2>
 
     <!-- Date | Type | Document Name | Invoice Number -->
@@ -16,7 +17,6 @@
         <label class="block text-xs font-medium mb-1">Type</label>
         <select name="documentType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
         [ngModel]="draft()?.documentType" (ngModelChange)="updateDraft({ documentType: $event })">
-          <option value="">Select type</option>
           @for (documentType of documentTypes; track documentType) {
             <option value="{{ documentType }}">{{ documentType }}</option>
           }
@@ -47,7 +47,7 @@
     <div class="grid grid-cols-12 gap-4 mt-3">
       <div class="col-span-4">
         <label class="block text-xs font-medium mb-1">Account</label>
-        <app-account-autocomplete [value]="draft()?.account" (accountSelected)="onAccountSelected($event)"/>
+        <app-account-autocomplete [value]="draft()?.account" (accountSelected)="onAccountSelected($event)" />
         @if (hasValidationError('Account is required')) {
           <p class="mt-1 text-[11px] text-red-600">Account is required</p>
         }
@@ -80,9 +80,9 @@
       <div class="col-span-2">
         <select name="documentItemType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
           [ngModel]="draft()?.documentItems?.[0]?.itemType" (ngModelChange)="updateDocumentItem({ itemType: $event })">
-          <option value="">Select type</option>
-          <option value="EXP">Expense</option>
-          <option value="INC">Income</option>
+          @for (itemType of itemTypes; track itemType) {
+            <option value="{{ itemType }}">{{ itemType }}</option>
+          }
         </select>
       </div>
   
@@ -138,10 +138,10 @@
         <label class="block text-xs font-medium mb-1">Payment Method</label>
         <select name="paymentMethod" class="w-full border border-gray-300 rounded px-3 py-0.5" required
         [ngModel]="draft()?.paymentMethod" (ngModelChange)="updateDraft({ paymentMethod: $event })">
-          <option value="">Select payment method</option>
-          @for (paymentMethod of paymentMethods; track paymentMethod) {
-            <option value="{{ paymentMethod }}">{{ paymentMethod }}</option>
-          }
+          <option [ngValue]="null" selected>Select payment method</option>
+            @for (paymentMethod of paymentMethods; track paymentMethod) {
+              <option [ngValue]="paymentMethod">{{ paymentMethod }}</option>
+            }
         </select>
       </div>
 
@@ -149,9 +149,9 @@
         <label class="block text-xs font-medium mb-1">Currency</label>      
         <select name="currencyCode" class="w-full border border-gray-300 rounded px-3 py-0.5" required
         [ngModel]="draft()?.currencyCode" (ngModelChange)="onCurrencyChange($event)">
-          <option value="">Select currency</option>
+          <option [ngValue]="null">Select currency</option>
           @for (currency of currencies; track currency) {
-            <option value="{{ currency }}">{{ currency }}</option>
+            <option [ngValue]="currency">{{ currency }}</option>
           }
         </select>
       </div>

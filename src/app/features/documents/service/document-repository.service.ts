@@ -1,6 +1,7 @@
 import { Injectable, signal } from "@angular/core";
 import { DocumentType } from "../model/document-type.model";
 import { DocumentDraft } from "../model/document-draft.model";
+import { Currency } from "../model/currency.model";
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +32,7 @@ export class DocumentRepositoryService {
       counterparty: base.counterparty ?? null,
       
       paymentMethod: base.paymentMethod ?? null,
-      currencyCode: base.currencyCode ?? 'PLN',
+      currencyCode: base.currencyCode ?? Currency.PLN,
       exchangeRate: base.exchangeRate ?? 1,
 
       documentItems: base.documentItems ?? [],

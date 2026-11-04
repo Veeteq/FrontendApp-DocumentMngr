@@ -1,5 +1,7 @@
+import { ItemType } from "../../features/documents/model/item-type.model";
+
 export interface CreateDocumentItemRequest {
-  itemType: string;
+  itemType: ItemType;
   itemId: number;
   itemQuantity: number;
   itemPrice: number;

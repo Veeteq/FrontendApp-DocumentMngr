@@ -15,11 +15,12 @@ import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { ToastService } from '../../common/toast/toast.service';
 import { Account } from '../model/account.model';
 import { Counterparty } from '../model/counterparty.model';
+import { Currency } from '../model/currency.model';
 import { DocumentDraft } from '../model/document-draft.model';
 import { DocumentItemDraft } from '../model/document-item-draft.model';
 import { DocumentType } from '../model/document-type.model';
+import { ItemType } from '../model/item-type.model';
 import { Item } from '../model/item.model';
-import { MoneyTransferDraft } from '../model/money-transfer-draft.model';
 import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
@@ -61,7 +62,8 @@ export class DocumentCreate implements OnInit {
     PaymentMethod.DEBIT_CARD,
     PaymentMethod.BANK_TRANSFER
   ];
-  readonly currencies = ['PLN', 'EUR', 'USD', 'GBP'];
+  readonly currencies = Object.values(Currency);
+  readonly itemTypes = Object.values(ItemType);
 
   // UI state
   readonly loading = signal(false);
@@ -71,7 +73,7 @@ export class DocumentCreate implements OnInit {
   readonly validationErrors = signal<string[]>([]);
 
   readonly draft = this.repository.draft;
-
+  
   ngOnInit(): void {
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
@@ -84,7 +86,7 @@ export class DocumentCreate implements OnInit {
       counterparty: null,
 
       paymentMethod: null,
-      currencyCode: 'PLN',
+      currencyCode: Currency.PLN,
       exchangeRate: 1,
     });
     this.initDocumentItem();
@@ -128,7 +130,7 @@ export class DocumentCreate implements OnInit {
     this.updateDocumentItem({ item });
   }
 
-  onCurrencyChange(currencyCode: string) {
+  onCurrencyChange(currencyCode: Currency) {
     const accountCurrency = this.repository.draft()?.account?.accountCurrency;
     if (accountCurrency === currencyCode) {
       this.repository.updateDraft({
@@ -162,8 +164,9 @@ export class DocumentCreate implements OnInit {
 
   getOriginalTotal(): string {
     const draft = this.repository.draft();
-    const item = draft?.documentItems?.[0];
+    if (!draft) return '0';
 
+    const item = draft.documentItems[0];
     if (!item) return '0';
 
     const total = (item.itemQuantity ?? 0) * (item.itemPrice ?? 0);
@@ -227,7 +230,7 @@ export class DocumentCreate implements OnInit {
       counterparty: null,
 
       paymentMethod: null,
-      currencyCode: 'PLN',
+      currencyCode: Currency.PLN,
       exchangeRate: 1,
     });
     this.initDocumentItem();
@@ -264,7 +267,7 @@ export class DocumentCreate implements OnInit {
     this.repository.updateDraft({
       documentItems: [
         {
-          itemType: 'EXP',
+          itemType: ItemType.EXP,
           itemQuantity: 1,
           itemPrice: 0,
           itemComment: '',
@@ -298,7 +301,7 @@ export class DocumentCreate implements OnInit {
     if (document.exchangeRate == null || document.exchangeRate <= 0) errors.push('Exchange rate must be greater than zero');
 
     // Items
-    const items = document.documentItems ?? [];
+    const items = document.documentItems;
     if (items.length === 0) errors.push('At least one document item is required');
     items.forEach((item, index) => {
       const itemNo = index + 1;
@@ -342,7 +345,7 @@ export class DocumentCreate implements OnInit {
     if (item.itemPrice == null || item.itemPrice <= 0) throw new Error(`Item #${index + 1}: price must be greater than 0`);
     return {
       itemType: item.itemType,
-      itemId: item.item!.itemId,
+      itemId: item.item.itemId,
       itemQuantity: item.itemQuantity,
       itemPrice: item.itemPrice,
       itemDescription: this.emptyToUndefined(item.itemComment),
@@ -354,7 +357,7 @@ export class DocumentCreate implements OnInit {
     return value?.trim() ? value.trim() : undefined;
   }
 
-  private handleHttpError(error: any, userMessage: string) {
+  private handleHttpError(error: unknown, userMessage: string) {
     const errMsg = getApplicationErrorMessage(error, userMessage);
     this.toastService.error(errMsg);
     console.error(userMessage, error);

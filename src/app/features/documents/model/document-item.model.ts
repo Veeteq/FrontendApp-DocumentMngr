@@ -1,8 +1,9 @@
+import { ItemType } from "./item-type.model";
 import { Item } from "./item.model";
 
 export interface DocumentItem {
   documentItemId: number;
-  itemType: string;
+  itemType: ItemType;
   item: Item;
   itemQuantity: number;
   itemPrice: number;

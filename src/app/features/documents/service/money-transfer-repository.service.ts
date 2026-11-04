@@ -15,7 +15,7 @@ export class TransferRepositoryService {
       transferDate: base.transferDate ?? now.substring(0, 10),
       sourceAccount: base.sourceAccount ?? null,
       targetAccount: base.targetAccount ?? null,
-      transferAmount: base.transferAmount ?? null,
+      transferAmount: base.transferAmount ?? 0,
       paymentMethod: base.paymentMethod ?? null,
       exchangeRate: base.exchangeRate ?? 1,
       provisionAmount: base.provisionAmount ?? null,
@@ -37,12 +37,6 @@ export class TransferRepositoryService {
   }
 
   reset(): void {
-    this._draft.set(null);
-    this.initTransfer({
-      transferDate: new Date().toISOString().substring(0, 10),
-      transferAmount: 0,
-      exchangeRate: 1,
-      provisionAmount: 0,
-    });
+    this.initTransfer({});
   }
 }

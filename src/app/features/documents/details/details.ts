@@ -83,6 +83,6 @@ export class Details implements OnInit {
   }
 
   isMoneyTransfer(document: Document): boolean {
-    return document.documentType?.toUpperCase() === DocumentType.TRANSFER;
+    return document.documentType === DocumentType.TRANSFER;
   }
 }

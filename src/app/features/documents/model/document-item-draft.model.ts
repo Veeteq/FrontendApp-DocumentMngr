@@ -1,7 +1,8 @@
+import { ItemType } from "./item-type.model";
 import { Item } from "./item.model";
 
 export interface DocumentItemDraft {
-  itemType?: string;
+  itemType?: ItemType;
   item?: Item;
 
   itemQuantity?: number;
