@@ -39,9 +39,9 @@
       <div class="col-span-4">
         <label class="block text-xs font-medium mb-1">Payment Method</label>
         <select name="paymentMethod" class="w-full border border-gray-300 rounded px-3 py-0.5" [ngModel]="draft()?.paymentMethod" (ngModelChange)="updateDraft({ paymentMethod: $event })">
-        @for (method of paymentMethods; track method) {
-          <option [value]="method">{{ method }}</option>
-        }
+          @for (paymentMethod of paymentMethods; track paymentMethod) {
+            <option [ngValue]="paymentMethod">{{ paymentMethod }}</option>
+          }
         </select>
       </div>
     </div>
@@ -94,7 +94,7 @@
           [value]="draft()?.provisionAmount ?? null"
           [fractionDigits]="2" 
           [minimum]="0.00" 
-          (valueChange)="updateDraft({ provisionAmount: $event ?? 0 })">
+          (valueChange)="updateDraft({ provisionAmount: $event })">
         </app-number-input>
       </div>
 
@@ -102,9 +102,10 @@
         <label class="block text-xs font-medium mb-1">Provision At</label>
         <select name="provisionAt" class="w-full border border-gray-300 rounded px-3 py-0.5"
         [ngModel]="draft()?.provisionAt" (ngModelChange)="updateDraft({ provisionAt: $event })">
-          <option value="" selected>Select provision at...</option>
-          <option value="SOURCE">Source</option>
-          <option value="TARGET">Target</option>
+          <option [ngValue]="null" selected>Select provision at...</option>
+          @for (option of provisionAtOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
         </select>
       </div>
     </div>

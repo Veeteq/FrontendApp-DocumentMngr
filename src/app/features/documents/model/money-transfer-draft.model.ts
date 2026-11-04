@@ -5,15 +5,15 @@ export interface MoneyTransferDraft {
   transferDate: string;
   sourceAccount: Account | null;
   targetAccount: Account | null;
-  transferAmount: number | null;
+  transferAmount: number;
   paymentMethod: PaymentMethod | null;
-  exchangeRate: number | null;
+  exchangeRate: number;
   provisionAmount: number | null;
   provisionAt: ProvisionAt | null;
   comment?: string;
 }
 
 export enum ProvisionAt  {
-  SOURCE,
-  TARGET
+  SOURCE = "SOURCE",
+  TARGET = "TARGET"
 }

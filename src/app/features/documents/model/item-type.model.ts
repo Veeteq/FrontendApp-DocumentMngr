@@ -1,4 +1,4 @@
 export enum ItemType {
-  EXP,
-  INC
+  EXP = 'EXP',
+  INC = 'INC'
 }

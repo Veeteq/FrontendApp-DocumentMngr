@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from "@angular/core";
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
@@ -17,7 +17,7 @@ import { TransferRepositoryService } from "../service/money-transfer-repository.
 
 @Component({
   selector: 'app-money-transfer',
-  imports: [ReactiveFormsModule, FormsModule, AccountAutocompleteComponent, NumberInputComponent],
+  imports: [FormsModule, AccountAutocompleteComponent, NumberInputComponent],
   templateUrl: './transfer-money.html',
   styleUrls: ['./transfer-money.css'],
 })
@@ -35,16 +35,17 @@ export class TransferMoney implements OnInit {
       PaymentMethod.ATM_DEPOSIT, 
       PaymentMethod.BANK_TRANSFER
     ];
-
+  readonly provisionAtOptions = [
+    { value: ProvisionAt.SOURCE, label: 'Source Account' },
+    { value: ProvisionAt.TARGET, label: 'Target Account' },
+  ];
+  
   readonly creating = signal(false);
   readonly draft = this.repository.draft;
   readonly validationErrors = signal<string[]>([]);
 
   ngOnInit(): void {
-    this.repository.initTransfer({
-      transferDate: new Date().toISOString().substring(0, 10),
-      exchangeRate: 1,
-    });
+    this.repository.initTransfer({});
   }
 
   updateDraft(patch: Partial<MoneyTransferDraft>) {
@@ -139,10 +140,7 @@ export class TransferMoney implements OnInit {
   resetForm() {
     this.validationErrors.set([]);
 
-    this.repository.initTransfer({
-      transferDate: new Date().toISOString().substring(0, 10),
-      exchangeRate: 1,
-    });
+    this.repository.initTransfer({});
   }
 
   validateTransfer(): string[] {

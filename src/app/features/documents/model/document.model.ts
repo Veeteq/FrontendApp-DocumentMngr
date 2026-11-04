@@ -1,5 +1,6 @@
 import { Account } from "./account.model";
 import { Counterparty } from "./counterparty.model";
+import { Currency } from "./currency.model";
 import { DocumentItem } from "./document-item.model";
 import { DocumentType } from "./document-type.model";
 import { PaymentMethod } from "./payment-method.model";
@@ -20,7 +21,7 @@ export interface Document {
   documentAmount: number;
 
   paymentMethod: PaymentMethod;
-  currencyCode: string;
+  currencyCode: Currency;
   exchangeRate: number;
 
   documentItems: DocumentItem[];

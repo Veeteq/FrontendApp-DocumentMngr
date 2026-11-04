@@ -1,12 +1,13 @@
 import { Account } from "./account.model";
 import { Counterparty } from "./counterparty.model";
+import { Currency } from "./currency.model";
 import { DocumentItemDraft } from "./document-item-draft.model";
 import { DocumentType } from "./document-type.model";
 import { PaymentMethod } from "./payment-method.model";
 
 export interface DocumentDraft {
   documentDate: string;
-  documentType: DocumentType | null;
+  documentType: DocumentType;
 
   documentName: string
   documentComment: string
@@ -16,7 +17,7 @@ export interface DocumentDraft {
   counterparty: Counterparty | null;
 
   paymentMethod: PaymentMethod  | null;
-  currencyCode: string | null;
+  currencyCode: Currency | null;
   exchangeRate: number | null;
 
   documentItems: DocumentItemDraft[];
