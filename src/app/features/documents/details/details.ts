@@ -7,10 +7,12 @@ import { ToastService } from "../../common/toast/toast.service";
 import { DocumentType } from "../model/document-type.model";
 import { Document } from "../model/document.model";
 import { DocumentApiService } from "../service/document-api.service";
+import { BaseDetails } from "./base-details/base-details";
+import { TransferDetails } from "./transfer-details/transfer-details";
 
 @Component({
   selector: 'app-details',
-  imports: [RouterLink],
+  imports: [RouterLink, BaseDetails, TransferDetails],
   templateUrl: './details.html',
   styleUrl: './details.css',
 })
@@ -24,6 +26,7 @@ export class Details implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly documentId = signal<number | null>(null);
+  readonly DocumentType = DocumentType;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -61,10 +64,6 @@ export class Details implements OnInit {
       });
   }
 
-  formatAmount(value: number | null | undefined, fractionDigits = 2): string {
-    return this.numberFormatService.format(value ?? 0, fractionDigits);
-  }
-
   formatDateTime(value: string | null | undefined): string {
     if (!value) return '';
 
@@ -78,11 +77,7 @@ export class Details implements OnInit {
     }).format(date);
   }
 
-  getItemTotal(quantity: number | null | undefined, price: number | null | undefined): string {
-    return this.formatAmount((quantity ?? 0) * (price ?? 0), 2);
-  }
-
   isMoneyTransfer(document: Document): boolean {
-    return document.documentType === DocumentType.TRANSFER;
+    return document.documentType.toUpperCase() === DocumentType.TRANSFER.toUpperCase();
   }
 }
