@@ -12,6 +12,10 @@ describe('AuthService', () => {
   let authStore: AuthStore;
   let config: ConfigService;
 
+  const configServiceMock = {
+    authApiUrl: '/api/auth',
+  };
+
   beforeEach(() => {
     localStorage.clear();
 
@@ -19,6 +23,10 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         AuthStore,
+        { 
+          provide: ConfigService, 
+          useValue: configServiceMock 
+        },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -121,11 +129,10 @@ describe('AuthService', () => {
   it('should clear authentication state and navigate to login after logout', () => {
     const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
 
-    service['authStore'].setAccessToken('test-access-token');
-    service['authStore'].setExpiresAt(
+    authStore.setAccessToken('test-access-token');
+    authStore.setExpiresAt(
       new Date(Date.now() + 60_000).toISOString(),
     );
-
     service.logout().subscribe();
 
     const request = httpTestingController.expectOne(
