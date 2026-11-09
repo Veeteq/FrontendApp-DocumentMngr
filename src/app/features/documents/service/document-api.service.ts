@@ -1,18 +1,19 @@
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from "@angular/common/http";
+import { HttpClient, HttpParams, HttpResponse } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { PagedResponse } from "../model/paged-response.model";
 import { Observable } from "rxjs";
-import { environment } from "../../../../environments/environment";
-import { Document } from "../model/document.model";
+import { ConfigService } from "../../../core/config/config.service";
 import { CreateDocumentRequest } from "../../../core/dto/create-document-request.model";
 import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.model";
+import { Document } from "../model/document.model";
+import { PagedResponse } from "../model/paged-response.model";
 
 @Injectable({
     providedIn: "root"
 })
 export class DocumentApiService {
   private readonly httpClient: HttpClient = inject(HttpClient);
-  private readonly baseUrl = `${environment.documentApiUrl}/documents`;
+  private readonly config = inject(ConfigService);
+  private readonly baseUrl = `${this.config.documentApiUrl}/documents`;
 
   getDocuments(pageNumber: number, pageSize: number, orderBy: string, orderDirection: string): Observable<PagedResponse<Document>> {
     const corrPageNumber = pageNumber - 1; // API is 0-based, UI is 1-based

@@ -1,0 +1,7 @@
+{
+  "api": {
+    "authUrl": "/api/auth",
+    "documentUrl": "/api/v1",
+    "addressbookUrl": "/api/addressbook"
+  }
+}

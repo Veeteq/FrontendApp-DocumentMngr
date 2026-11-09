@@ -1,15 +1,20 @@
-import { TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { ConfigService } from '../config/config.service';
 import { AuthService } from './auth.service';
 import { AuthStore } from './auth.store';
-import { environment } from '../../../environments/environment';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpTestingController: HttpTestingController;
   let authStore: AuthStore;
+  let config: ConfigService;
+
+  const configServiceMock = {
+    authApiUrl: '/api/auth',
+  };
 
   beforeEach(() => {
     localStorage.clear();
@@ -18,6 +23,10 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         AuthStore,
+        { 
+          provide: ConfigService, 
+          useValue: configServiceMock 
+        },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -27,6 +36,7 @@ describe('AuthService', () => {
     service = TestBed.inject(AuthService);
     httpTestingController = TestBed.inject(HttpTestingController);
     authStore = TestBed.inject(AuthStore);
+    config = TestBed.inject(ConfigService);
   });
 
   afterEach(() => {
@@ -45,7 +55,7 @@ describe('AuthService', () => {
     service.login(username, password).subscribe();
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/login`,
+      `${config.authApiUrl}/login`,
     );
 
     expect(request.request.method).toBe('POST');
@@ -69,7 +79,7 @@ describe('AuthService', () => {
     service.refreshToken().subscribe();
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     expect(request.request.method).toBe('POST');
@@ -102,7 +112,7 @@ describe('AuthService', () => {
     });
 
     const requests = httpTestingController.match(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     expect(requests.length).toBe(1);
@@ -119,15 +129,14 @@ describe('AuthService', () => {
   it('should clear authentication state and navigate to login after logout', () => {
     const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
 
-    service['authStore'].setAccessToken('test-access-token');
-    service['authStore'].setExpiresAt(
+    authStore.setAccessToken('test-access-token');
+    authStore.setExpiresAt(
       new Date(Date.now() + 60_000).toISOString(),
     );
-
     service.logout().subscribe();
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/logout`,
     );
 
     expect(request.request.method).toBe('POST');
@@ -159,7 +168,7 @@ describe('AuthService', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
 
     httpTestingController.expectNone(
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/logout`,
     );
   });
 
@@ -174,7 +183,7 @@ describe('AuthService', () => {
     });
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/login`,
+      `${config.authApiUrl}/login`,
     );
 
     request.flush(
@@ -203,7 +212,7 @@ describe('AuthService', () => {
     });
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     request.flush(
@@ -233,7 +242,7 @@ describe('AuthService', () => {
     });
 
     const requests = httpTestingController.match(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     expect(requests.length).toBe(1);
@@ -256,7 +265,7 @@ describe('AuthService', () => {
     });
 
     const retryRequest = httpTestingController.expectOne(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     const response = {
@@ -287,7 +296,7 @@ describe('AuthService', () => {
     });
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/logout`,
     );
 
     request.flush(

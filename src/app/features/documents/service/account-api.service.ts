@@ -1,8 +1,8 @@
-import { inject, Injectable } from "@angular/core";
-import { environment } from "../../../../environments/environment";
 import { HttpClient } from "@angular/common/http";
-import { Account } from "../model/account.model";
+import { inject, Injectable } from "@angular/core";
 import { Observable, of } from "rxjs";
+import { ConfigService } from "../../../core/config/config.service";
+import { Account } from "../model/account.model";
 import { PagedResponse } from "../model/paged-response.model";
 
 @Injectable({
@@ -10,7 +10,8 @@ import { PagedResponse } from "../model/paged-response.model";
 })
 export class AccountApiService {
   private httpClient: HttpClient = inject(HttpClient);
-  private readonly baseUrl = `${environment.documentApiUrl}/accounts`;
+  private readonly config = inject(ConfigService);
+  private readonly baseUrl = `${this.config.documentApiUrl}/accounts`;
 
   getAccounts(): Observable<PagedResponse<Account>> {
     return this.httpClient.get<PagedResponse<Account>>(`${this.baseUrl}`);

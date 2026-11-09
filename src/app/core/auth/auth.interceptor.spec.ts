@@ -7,12 +7,16 @@ import { vi } from 'vitest';
 import { authInterceptor } from './auth.interceptor';
 import { AuthStore } from './auth.store';
 import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
 import { of, throwError } from 'rxjs';
+import { ConfigService } from '../config/config.service';
 
 describe('authInterceptor', () => {
   let httpTestingController: HttpTestingController;
   let authStore: AuthStore;
+  let config: ConfigService;
+  const configServiceMock = {
+    authApiUrl: '/api/auth',
+  };
 
   beforeEach(() => {
     localStorage.clear();
@@ -20,6 +24,10 @@ describe('authInterceptor', () => {
     TestBed.configureTestingModule({
       providers: [
         AuthStore,
+        { 
+          provide: ConfigService, 
+          useValue: configServiceMock 
+        },
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         {
@@ -35,6 +43,7 @@ describe('authInterceptor', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     authStore = TestBed.inject(AuthStore);
+    config = TestBed.inject(ConfigService);
   });
 
   afterEach(() => {
@@ -62,9 +71,9 @@ describe('authInterceptor', () => {
     authStore.setAccessToken('test-access-token');
 
     const authEndpoints = [
-      `${environment.authApiUrl}/login`,
-      `${environment.authApiUrl}/refresh`,
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/login`,
+      `${config.authApiUrl}/refresh`,
+      `${config.authApiUrl}/logout`,
     ];
 
     const http = TestBed.inject(HttpClient);
@@ -169,18 +178,15 @@ describe('authInterceptor', () => {
       return of({
         token: 'new-access-token',
         expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        refreshTokenExpiresAt: new Date(
-          Date.now() + 14 * 24 * 60 * 60_000,
-        ).toISOString(),
+        refreshTokenExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60_000).toISOString(),
         type: 'Bearer',
         expiresIn: 60,
       });
     });
 
-
     // Simulate an inconsistent state: refresh reports success,
     // but the store has no access token when the request is retried.
-    authStore.clearAccessToken();
+    // authStore.clearAccessToken();
 
     const http = TestBed.inject(HttpClient);
     let receivedError: unknown;

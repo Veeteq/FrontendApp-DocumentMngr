@@ -1,21 +1,22 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { finalize, Observable, shareReplay, tap } from 'rxjs';
-import { AuthStore } from './auth.store';
-import { LoginResponse } from '../../model/login-response';
-import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
+import { finalize, Observable, shareReplay, tap } from 'rxjs';
+import { LoginResponse } from '../../model/login-response';
 import { RefreshTokenResponse } from '../../model/refresh-token-response';
+import { ConfigService } from '../config/config.service';
+import { AuthStore } from './auth.store';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly authStore = inject(AuthStore);
+  private readonly config = inject(ConfigService);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
-  private readonly baseUrl = environment.authApiUrl;
+  private readonly baseUrl = this.config.authApiUrl;
 
   private refreshInProgress = false;
   private refreshRequest$?: Observable<RefreshTokenResponse>;
