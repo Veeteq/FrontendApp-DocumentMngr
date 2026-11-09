@@ -1,15 +1,16 @@
-import { AuthStore } from './auth.store';
-import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError, switchMap } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
+import { ConfigService } from '../config/config.service';
+import { AuthService } from './auth.service';
+import { AuthStore } from './auth.store';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
+export const authInterceptor: HttpInterceptorFn = (req, next) => {  
   const authStore = inject(AuthStore);
   const authService = inject(AuthService);
+  const config = inject(ConfigService);
 
-  const authApiUrl = environment.authApiUrl;
+  const authApiUrl = config.authApiUrl;
 
   const isAuthEndpoint =
     req.url === `${authApiUrl}/login` ||

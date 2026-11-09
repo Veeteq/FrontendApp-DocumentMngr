@@ -1,15 +1,16 @@
-import { TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { ConfigService } from '../config/config.service';
 import { AuthService } from './auth.service';
 import { AuthStore } from './auth.store';
-import { environment } from '../../../environments/environment';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpTestingController: HttpTestingController;
   let authStore: AuthStore;
+  let config: ConfigService;
 
   beforeEach(() => {
     localStorage.clear();
@@ -27,6 +28,7 @@ describe('AuthService', () => {
     service = TestBed.inject(AuthService);
     httpTestingController = TestBed.inject(HttpTestingController);
     authStore = TestBed.inject(AuthStore);
+    config = TestBed.inject(ConfigService);
   });
 
   afterEach(() => {
@@ -45,7 +47,7 @@ describe('AuthService', () => {
     service.login(username, password).subscribe();
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/login`,
+      `${config.authApiUrl}/login`,
     );
 
     expect(request.request.method).toBe('POST');
@@ -69,7 +71,7 @@ describe('AuthService', () => {
     service.refreshToken().subscribe();
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     expect(request.request.method).toBe('POST');
@@ -102,7 +104,7 @@ describe('AuthService', () => {
     });
 
     const requests = httpTestingController.match(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     expect(requests.length).toBe(1);
@@ -127,7 +129,7 @@ describe('AuthService', () => {
     service.logout().subscribe();
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/logout`,
     );
 
     expect(request.request.method).toBe('POST');
@@ -159,7 +161,7 @@ describe('AuthService', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
 
     httpTestingController.expectNone(
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/logout`,
     );
   });
 
@@ -174,7 +176,7 @@ describe('AuthService', () => {
     });
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/login`,
+      `${config.authApiUrl}/login`,
     );
 
     request.flush(
@@ -203,7 +205,7 @@ describe('AuthService', () => {
     });
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     request.flush(
@@ -233,7 +235,7 @@ describe('AuthService', () => {
     });
 
     const requests = httpTestingController.match(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     expect(requests.length).toBe(1);
@@ -256,7 +258,7 @@ describe('AuthService', () => {
     });
 
     const retryRequest = httpTestingController.expectOne(
-      `${environment.authApiUrl}/refresh`,
+      `${config.authApiUrl}/refresh`,
     );
 
     const response = {
@@ -287,7 +289,7 @@ describe('AuthService', () => {
     });
 
     const request = httpTestingController.expectOne(
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/logout`,
     );
 
     request.flush(

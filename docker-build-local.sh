@@ -1,8 +1,8 @@
 #!/bin/bash
 
 docker run -d \
-  --name homefinance-app \
+  --name documentmngr-frontend \
   --network backend-network \
   -p 4201:80 \
   --restart unless-stopped \
-  homefinance-app:latest
+  documentmngr-frontend:latest

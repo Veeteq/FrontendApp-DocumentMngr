@@ -7,12 +7,13 @@ import { vi } from 'vitest';
 import { authInterceptor } from './auth.interceptor';
 import { AuthStore } from './auth.store';
 import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
 import { of, throwError } from 'rxjs';
+import { ConfigService } from '../config/config.service';
 
 describe('authInterceptor', () => {
   let httpTestingController: HttpTestingController;
   let authStore: AuthStore;
+  let config: ConfigService;
 
   beforeEach(() => {
     localStorage.clear();
@@ -35,6 +36,7 @@ describe('authInterceptor', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     authStore = TestBed.inject(AuthStore);
+    config = TestBed.inject(ConfigService);
   });
 
   afterEach(() => {
@@ -62,9 +64,9 @@ describe('authInterceptor', () => {
     authStore.setAccessToken('test-access-token');
 
     const authEndpoints = [
-      `${environment.authApiUrl}/login`,
-      `${environment.authApiUrl}/refresh`,
-      `${environment.authApiUrl}/logout`,
+      `${config.authApiUrl}/login`,
+      `${config.authApiUrl}/refresh`,
+      `${config.authApiUrl}/logout`,
     ];
 
     const http = TestBed.inject(HttpClient);
