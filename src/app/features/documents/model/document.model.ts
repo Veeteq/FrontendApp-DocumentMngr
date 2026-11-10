@@ -4,6 +4,7 @@ import { Currency } from "./currency.model";
 import { DocumentItem } from "./document-item.model";
 import { DocumentType } from "./document-type.model";
 import { PaymentMethod } from "./payment-method.model";
+import { TransferDetails } from "./transfer-details.model";
 
 export interface Document {
   documentId: number;
@@ -15,10 +16,10 @@ export interface Document {
   invoiceNumber?: string;
 
   account: Account
-  targetAccount?: Account;
   counterparty?: Counterparty;
 
   documentAmount: number;
+  transferDetails?: TransferDetails;
 
   paymentMethod: PaymentMethod;
   currencyCode: Currency;

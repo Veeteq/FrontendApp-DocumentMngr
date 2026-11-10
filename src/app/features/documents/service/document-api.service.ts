@@ -3,7 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { ConfigService } from "../../../core/config/config.service";
 import { CreateDocumentRequest } from "../../../core/dto/create-document-request.model";
-import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.model";
+import { TransferRequest } from "../../../core/dto/transfer-request.model";
 import { Document } from "../model/document.model";
 import { PagedResponse } from "../model/paged-response.model";
 
@@ -30,7 +30,7 @@ export class DocumentApiService {
     return this.httpClient.post<void>(`${this.baseUrl}`, request, { observe: 'response' });
   }
 
-  createTransfer(request: MoneyTransferRequest) : Observable<HttpResponse<void>> {
+  createTransfer(request: TransferRequest) : Observable<HttpResponse<void>> {
     return this.httpClient.post<void>(`${this.baseUrl}`, request, { observe: 'response' });
   }
 
