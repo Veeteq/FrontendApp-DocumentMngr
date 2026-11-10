@@ -1,0 +1,91 @@
+pipeline {
+  agent any
+
+  environment {
+    VM_HOST = '192.168.56.104'
+    NETWORK_NAME = 'backend-network'
+    REPOSITORY_URL = 'ssh://root@192.168.56.104/root/git/fnt-documentmngr-app.git'
+    IMAGE_NAME = 'documentmngr-frontend'
+    IMAGE_TAG = 'latest'
+    CONTAINER_NAME = 'documentmngr-frontend'
+    HOST_PORT = '4201'
+    CONTAINER_PORT = '80'
+  }
+
+  parameters {
+    string(name: 'BRANCH', defaultValue: 'develop', description: 'Branch name to build')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git url: env.REPOSITORY_URL, branch: params.BRANCH
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          sh '''
+            docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+          '''
+        }
+      }
+    }
+
+    stage('Run Docker Container') {
+      steps {
+        script {
+          sh '''
+            docker network inspect ${NETWORK_NAME} > /dev/null 2>&1 || \
+            docker network create ${NETWORK_NAME}
+            docker rm -f ${CONTAINER_NAME} 2>/dev/null || true
+          '''
+
+          sh '''
+            docker run -d \
+            --name ${CONTAINER_NAME} \
+            --network ${NETWORK_NAME} \
+            -p ${HOST_PORT}:${CONTAINER_PORT} \
+            ${IMAGE_NAME}:${IMAGE_TAG}
+          '''
+        }
+      }
+    }
+
+    stage('Verify Deployment') {
+      steps {
+        sh '''
+          echo "Waiting for ${CONTAINER_NAME} ..."
+
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://${VM_HOST}:${HOST_PORT}/ > /dev/null; then
+              echo "${CONTAINER_NAME} is ready"
+              exit 0
+            fi
+
+            echo "Not ready yet. Attempt $i/30"
+            sleep 2
+          done
+
+          echo "${CONTAINER_NAME} did not become ready within 60 seconds."
+          docker logs ${CONTAINER_NAME}
+          exit 1
+        '''
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Pipeline completed successfully.'
+    }
+    failure {
+      echo 'Pipeline failed. Check the logs for details.'
+    }
+    always {
+      echo 'Cleaning up...'
+      cleanWs()
+    }
+  }
+}
