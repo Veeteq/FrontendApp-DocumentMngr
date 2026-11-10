@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, output, signal } from "@angular/core";
+import { Component, DestroyRef, effect, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 
@@ -15,6 +15,7 @@ export class DocumentNameAutocompleteComponent {
   private readonly documentApi = inject(DocumentApiService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly value = input<string | null>();
   readonly nameSelected = output<string>();
   readonly nameChanged = output<string>();
 
@@ -30,7 +31,15 @@ export class DocumentNameAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
-     this.search$
+    effect(() => {
+      this.searchText.set(this.value() ?? '');
+      this.documentNames.set([]);
+      this.highlightedIndex.set(-1);
+      this.opened.set(false);
+      this.error
+    });
+
+    this.search$
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
