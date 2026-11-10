@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, output, signal } from "@angular/core";
+import { Component, DestroyRef, effect, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 
@@ -17,9 +17,9 @@ export class CounterpartyAutocompleteComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly disabled = input(false);
-
+  readonly value = input<Counterparty | null>();
   readonly counterpartySelected = output<Counterparty>();
-
+  
   readonly searchText = signal('');
   readonly counterparties = signal<Counterparty[]>([]);
   readonly loading = signal(false);
@@ -32,6 +32,19 @@ export class CounterpartyAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
+    effect(() => {
+      const counterparty = this.value();
+      this.searchText.set(counterparty?.displayName ?? '');
+      this.selectedCounterparty.set(counterparty ?? null);
+
+      if (!counterparty) {
+        this.counterparties.set([]);
+        this.opened.set(false);        
+        this.highlightedIndex.set(-1);
+        this.error.set(null);
+      }
+    });
+
     this.search$
       .pipe(
         debounceTime(300),

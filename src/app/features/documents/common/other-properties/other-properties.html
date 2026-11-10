@@ -1,0 +1,51 @@
+  <!-- Other properties Panel -->
+  <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
+    <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Other properties</h2>
+
+    <!-- Payment Row -->
+    <div class="grid grid-cols-12 gap-4 mt-3">
+      <div class="col-span-5">
+        <label class="block text-xs font-medium mb-1">Payment Method</label>
+        <select name="paymentMethod" class="w-full border border-gray-300 rounded px-3 py-0.5" required
+        [ngModel]="draft().paymentMethod" (ngModelChange)="updateDraft({ paymentMethod: $event })">
+          <option [ngValue]="null" selected>Select payment method</option>
+            @for (paymentMethod of paymentMethods; track paymentMethod) {
+              <option [ngValue]="paymentMethod">{{ paymentMethod }}</option>
+            }
+        </select>
+      </div>
+
+      <div class="col-span-3">
+        <label class="block text-xs font-medium mb-1">Currency</label>      
+        <select name="currencyCode" class="w-full border border-gray-300 rounded px-3 py-0.5" required
+        [ngModel]="draft().currencyCode" (ngModelChange)="onCurrencyChange($event)">
+          <option [ngValue]="null">Select currency</option>
+          @for (currency of currencies; track currency) {
+            <option [ngValue]="currency">{{ currency }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-span-4">
+        <label class="block text-xs font-medium mb-1">Exchange Rate</label>
+        <app-number-input  inputName="exchangeRate" ariaLabel="Exchange rate"
+          [value]="draft().exchangeRate ?? null"
+          [fractionDigits]="6" 
+          [minimum]="0.000001" 
+          [required]="true" 
+          [readonly]="!isExchangeRateEditable()" 
+          (valueChange)="updateDraft({ exchangeRate: $event ?? 1 })" />          
+      </div>
+    </div>
+  
+    <!-- Document Comment Row -->  
+    <div class="grid grid-cols-12 gap-4 mt-3">
+      <div class="col-span-12">
+        <label class="block text-xs font-medium mb-1">Document Comment</label>
+        <textarea rows="2" name="documentComment" class="w-full border border-gray-300 rounded px-3 py-0.5"
+          [ngModel]="draft().documentComment"
+          (ngModelChange)="updateDraft({ documentComment: $event })">
+        </textarea>
+      </div>
+    </div>
+  </div>

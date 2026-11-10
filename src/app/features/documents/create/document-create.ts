@@ -6,15 +6,13 @@ import { getApplicationErrorMessage } from '../../../core/auth/http-error.interc
 import { CreateDocumentItemRequest } from '../../../core/dto/create-document-item-request.model';
 import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
-import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
-import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
-import { DocumentNameAutocompleteComponent } from '../../autocomplete/documentname/document-name-autocomplete';
 import { ItemAutocompleteComponent } from '../../autocomplete/item/item-autocomplete';
 import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment/item-comment-autocomplete';
 import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { ToastService } from '../../common/toast/toast.service';
+import { Header } from '../common/header/header';
+import { OtherProperties } from '../common/other-properties/other-properties';
 import { Account } from '../model/account.model';
-import { Counterparty } from '../model/counterparty.model';
 import { Currency } from '../model/currency.model';
 import { DocumentDraft } from '../model/document-draft.model';
 import { DocumentItemDraft } from '../model/document-item-draft.model';
@@ -25,6 +23,7 @@ import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
 
+
 @Component({
   selector: 'app-document-create',
   imports: [
@@ -33,13 +32,12 @@ import { DocumentRepositoryService } from '../service/document-repository.servic
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
-    AccountAutocompleteComponent,
-    CounterpartyAutocompleteComponent,
-    DocumentNameAutocompleteComponent,
     ItemAutocompleteComponent,
     ItemCommentAutocompleteComponent,
     NumberInputComponent,
-  ],
+    Header,
+    OtherProperties,
+],
   templateUrl: './document-create.html',
   styleUrl: './document-create.css',
 })
@@ -51,18 +49,6 @@ export class DocumentCreate implements OnInit {
   private readonly router = inject(Router);
 
   // Temporary reference data
-  readonly documentTypes = [
-    DocumentType.NOTE, 
-    DocumentType.BILL, 
-    DocumentType.INVOICE
-  ];
-  readonly paymentMethods = [
-    PaymentMethod.CASH,
-    PaymentMethod.CREDIT_CARD,
-    PaymentMethod.DEBIT_CARD,
-    PaymentMethod.BANK_TRANSFER
-  ];
-  readonly currencies = Object.values(Currency);
   readonly itemTypes = Object.values(ItemType);
 
   // UI state
@@ -96,53 +82,14 @@ export class DocumentCreate implements OnInit {
     this.repository.updateDraft(patch);
   }
 
-  onAccountSelected(account: Account) {
-    this.repository.updateDraft({
-      account,
-      currencyCode: account.accountCurrency,
-      paymentMethod: account.defaultPaymentMethod,
-    });
-  }
-
   onCommentChanged(comment: string) {
     this.updateDocumentItem({
       itemComment: comment,
     });
   }
 
-  onCounterpartySelected(counterparty: Counterparty) {
-    this.repository.updateDraft({
-      counterparty: {
-        id: counterparty.id,
-        name: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
-        displayName: counterparty.displayName,
-      },
-    });
-  }
-
-  onDocumentNameChanged(name: string) {
-    this.repository.updateDraft({
-      documentName: name,
-    });
-  }
-
   onItemSelected(item: Item): void {
     this.updateDocumentItem({ item });
-  }
-
-  onCurrencyChange(currencyCode: Currency) {
-    const accountCurrency = this.repository.draft()?.account?.accountCurrency;
-    if (accountCurrency === currencyCode) {
-      this.repository.updateDraft({
-        currencyCode: currencyCode,
-        exchangeRate: 1,
-      });
-      return;
-    }
-
-    this.repository.updateDraft({
-      currencyCode: currencyCode,
-    });
   }
 
   updateDocumentItem(patch: Partial<DocumentItemDraft>) {
@@ -234,25 +181,6 @@ export class DocumentCreate implements OnInit {
       exchangeRate: 1,
     });
     this.initDocumentItem();
-  }
-
-  isCounterpartyEnabled(): boolean {
-    const type = this.repository.draft()?.documentType;
-    return type === DocumentType.BILL || type === DocumentType.INVOICE;
-  }
-
-  isInvoiceNumberEnabled(): boolean {
-    const type = this.repository.draft()?.documentType;
-    return type === DocumentType.INVOICE;
-  }
-
-  isExchangeRateEditable(): boolean {
-    const accountCurrency = this.repository.draft()?.account?.accountCurrency;
-    const documentCurrency = this.repository.draft()?.currencyCode;
-    if (!accountCurrency || !documentCurrency) {
-      return true;
-    }
-    return accountCurrency !== documentCurrency;
   }
 
   hasValidationError(message: string): boolean {
