@@ -9,9 +9,9 @@ export interface DocumentDraft {
   documentDate: string;
   documentType: DocumentType;
 
-  documentName: string
-  documentComment: string
-  invoiceNumber: string
+  documentName: string;
+  documentComment: string;
+  invoiceNumber: string;
 
   account: Account | null;
   counterparty: Counterparty | null;

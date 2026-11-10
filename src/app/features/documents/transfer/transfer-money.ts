@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
-import { MoneyTransferRequest } from "../../../core/dto/money-transfer-request.model";
+import { TransferRequest } from "../../../core/dto/transfer-request.model";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
 import { AccountAutocompleteComponent } from "../../autocomplete/account/account-autocomplete";
 import { NumberInputComponent } from "../../common/numberinput/number-input";
@@ -94,6 +94,12 @@ export class TransferMoney implements OnInit {
     return this.numberFormatService.format(amount, 2);
   }
 
+  reverseExchangeRate() {
+    const currentRate = this.draft()?.exchangeRate;
+    if (currentRate == null || currentRate <= 0) return;
+    this.updateDraft({ exchangeRate: 1 / currentRate });
+  }
+
   submit() {
     if (this.creating()) return;
 
@@ -110,7 +116,7 @@ export class TransferMoney implements OnInit {
     }
 
     // Convert to request DTO
-    const request = this.toMoneyTransferRequest(transfer);
+    const request = this.toTransferRequest(transfer);
 
     //Send request to API
     this.creating.set(true);
@@ -196,7 +202,7 @@ export class TransferMoney implements OnInit {
     return errors;
   }
 
-  private toMoneyTransferRequest(document: MoneyTransferDraft): MoneyTransferRequest {
+  private toTransferRequest(document: MoneyTransferDraft): TransferRequest {
     //defensive transfer mapper guards
     if (!document.sourceAccount) throw new Error('Source account is required');
     if (!document.targetAccount) throw new Error('Target account is required');
@@ -208,13 +214,17 @@ export class TransferMoney implements OnInit {
       documentDate: document.transferDate,
       documentType: DocumentType.TRANSFER,
       accountId: document.sourceAccount.accountId,
-      targetAccountId: document.targetAccount.accountId,
-      transferAmount: document.transferAmount,
       documentDescription: this.emptyToUndefined(document.comment),
       payment: {
         paymentMethod: document.paymentMethod,
         currencyCode: document.targetAccount.accountCurrency,
         exchangeRate: document.exchangeRate,
+      },
+      transfer: {
+        targetAccountId: document.targetAccount.accountId,
+        transferAmount: document.transferAmount,
+        provisionAmount: document.provisionAmount ?? undefined,
+        provisionAt: document.provisionAt ?? undefined,
       },
     };
   }
