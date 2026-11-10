@@ -1,0 +1,23 @@
+#!/bin/bash
+
+TOKEN=$(cat /root/jenkins/token)
+JENKINS_URL="http://localhost:8080"
+JOB_NAME="FrontendDocumentManager"
+
+while read oldrev newrev refname
+do
+    case "$refname" in
+        refs/heads/*)
+            BRANCH="${refname#refs/heads/}"
+            echo "Triggering Jenkins for branch: $BRANCH"
+
+            curl -X POST \
+             --user admin:${TOKEN} \
+             --data-urlencode BRANCH="$BRANCH" \
+             "${JENKINS_URL}/job/${JOB_NAME}/buildWithParameters"
+            ;;
+        *)
+            echo "Ignoring non-branch ref: $refname"
+            ;;
+    esac
+done
