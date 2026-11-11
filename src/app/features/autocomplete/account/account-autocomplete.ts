@@ -42,7 +42,7 @@ export class AccountAutocompleteComponent {
         this.error.set(null);
       }
     });
-    
+
     this.search$
       .pipe(
         debounceTime(300),
