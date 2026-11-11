@@ -33,11 +33,11 @@ export class ItemAutocompleteComponent {
   constructor() {
     effect(() => {
       const item = this.value();
+      this.searchText.set(item?.itemName ?? '');
+      this.selectedItem.set(item ?? null);
       if (!item) {
-        this.searchText.set('');
         this.items.set([]);
         this.opened.set(false);
-        this.selectedItem.set(null);
         this.highlightedIndex.set(-1);
         this.error.set(null);
       }

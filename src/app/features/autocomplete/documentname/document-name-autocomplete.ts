@@ -36,7 +36,7 @@ export class DocumentNameAutocompleteComponent {
       this.documentNames.set([]);
       this.highlightedIndex.set(-1);
       this.opened.set(false);
-      this.error
+      this.error.set(null)
     });
 
     this.search$

@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
 import { CreateDocumentItemRequest } from '../../../core/dto/create-document-item-request.model';
@@ -12,14 +12,12 @@ import { NumberInputComponent } from '../../common/numberinput/number-input';
 import { ToastService } from '../../common/toast/toast.service';
 import { Header } from '../common/header/header';
 import { OtherProperties } from '../common/other-properties/other-properties';
-import { Account } from '../model/account.model';
 import { Currency } from '../model/currency.model';
 import { DocumentDraft } from '../model/document-draft.model';
 import { DocumentItemDraft } from '../model/document-item-draft.model';
 import { DocumentType } from '../model/document-type.model';
 import { ItemType } from '../model/item-type.model';
 import { Item } from '../model/item.model';
-import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
 
@@ -28,9 +26,6 @@ import { DocumentRepositoryService } from '../service/document-repository.servic
   selector: 'app-document-create',
   imports: [
     RouterLink,
-    RouterOutlet,
-    RouterModule,
-    ReactiveFormsModule,
     FormsModule,
     ItemAutocompleteComponent,
     ItemCommentAutocompleteComponent,
@@ -52,12 +47,8 @@ export class DocumentCreate implements OnInit {
   readonly itemTypes = Object.values(ItemType);
 
   // UI state
-  readonly loading = signal(false);
   readonly creating = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly accounts = signal<Account[]>([]);
   readonly validationErrors = signal<string[]>([]);
-
   readonly draft = this.repository.draft;
   
   ngOnInit(): void {
