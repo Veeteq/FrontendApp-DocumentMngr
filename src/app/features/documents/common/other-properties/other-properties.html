@@ -33,7 +33,7 @@
           [fractionDigits]="6" 
           [minimum]="0.000001" 
           [required]="true" 
-          [readonly]="!isExchangeRateEditable()" 
+          [readonly]="!exchangeRateEditable()" 
           (valueChange)="updateDraft({ exchangeRate: $event ?? 1 })" />          
       </div>
     </div>

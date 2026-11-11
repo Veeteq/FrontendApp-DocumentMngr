@@ -14,7 +14,7 @@
       <div class="col-span-2">
         <label class="block text-xs font-medium mb-1">Type</label>
         <select name="documentType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
-        [ngModel]="draft().documentType" (ngModelChange)="updateDraft({ documentType: $event })">
+        [ngModel]="draft().documentType" (ngModelChange)="onDocumentTypeChange($event)">
           @for (documentType of documentTypes; track documentType) {
             <option value="{{ documentType }}">{{ documentType }}</option>
           }

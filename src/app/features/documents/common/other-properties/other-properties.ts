@@ -24,10 +24,12 @@ export class OtherProperties {
     PaymentMethod.DEBIT_CARD,
     PaymentMethod.BANK_TRANSFER
   ];
+
   readonly exchangeRateEditable = computed(() => {
     const accountCurrency = this.draft().account?.accountCurrency;
     const documentCurrency = this.draft().currencyCode;
-    return accountCurrency != null && documentCurrency != null && accountCurrency !== documentCurrency;
+    if (!accountCurrency || !documentCurrency) return true;
+    return accountCurrency !== documentCurrency;
   });
 
   updateDraft(patch: Partial<DocumentDraft>): void {
@@ -49,10 +51,4 @@ export class OtherProperties {
     });
   }
 
-  isExchangeRateEditable(): boolean {
-    const accountCurrency = this.draft()?.account?.accountCurrency;
-    const documentCurrency = this.draft()?.currencyCode;
-    if (!accountCurrency || !documentCurrency) return true;
-    return accountCurrency !== documentCurrency;
-  }
 }

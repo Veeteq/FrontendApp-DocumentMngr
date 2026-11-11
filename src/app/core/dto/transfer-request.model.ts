@@ -10,6 +10,4 @@ export interface TransferRequest {
   documentDescription?: string;
   payment: PaymentRequest;
   transfer: Transfer;
-  
-  
 } 

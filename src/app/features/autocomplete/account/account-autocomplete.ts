@@ -33,11 +33,11 @@ export class AccountAutocompleteComponent {
   constructor() {
     effect(() => {
       const account = this.value();
+      this.searchText.set(account?.accountName ?? '');
+      this.selectedAccount.set(account ?? null);
       if (!account) {
-        this.searchText.set('');
         this.accounts.set([]);
         this.opened.set(false);
-        this.selectedAccount.set(null);
         this.highlightedIndex.set(-1);
         this.error.set(null);
       }
