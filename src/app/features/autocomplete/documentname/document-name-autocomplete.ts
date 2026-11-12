@@ -36,7 +36,7 @@ export class DocumentNameAutocompleteComponent {
       this.documentNames.set([]);
       this.highlightedIndex.set(-1);
       this.opened.set(false);
-      this.error.set(null)
+      this.error.set(null);
     });
 
     this.search$
@@ -56,7 +56,7 @@ export class DocumentNameAutocompleteComponent {
 
           this.loading.set(true);
 
-          return this.documentApi.searchDocuments("documentName", trimmed)
+          return this.documentApi.getMatadata("documentName", trimmed)
           .pipe(
             catchError(() => {
               this.error.set('Failed to load document names');
