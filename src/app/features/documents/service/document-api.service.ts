@@ -34,13 +34,13 @@ export class DocumentApiService {
     return this.httpClient.post<void>(`${this.baseUrl}`, request, { observe: 'response' });
   }
 
-  searchDocuments(property: string, pattern: string) {
+  getMatadata(property: string, pattern: string) {
     const params = new HttpParams()
       .set('property', property)
       .set('pattern', pattern)
       .set('distinct', true);
 
-    return this.httpClient.get<string[]>(`${this.baseUrl}/search`, { params });
+    return this.httpClient.get<string[]>(`${this.baseUrl}/metadata`, { params });
   }
 
   getDocument(documentId: number): Observable<Document> {

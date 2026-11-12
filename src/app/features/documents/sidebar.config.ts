@@ -15,7 +15,7 @@ export const DOCUMENTS_SIDEBAR: SidebarItem[] = [
     exact: true
   },
   {
-    label: 'New Document',
+    label: 'Simple document',
       icon: '📝',
     route: 'new'
   },
