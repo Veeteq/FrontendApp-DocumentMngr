@@ -56,7 +56,7 @@ export class DocumentNameAutocompleteComponent {
 
           this.loading.set(true);
 
-          return this.documentApi.getMatadata("documentName", trimmed)
+          return this.documentApi.getMetadata("documentName", trimmed)
           .pipe(
             catchError(() => {
               this.error.set('Failed to load document names');

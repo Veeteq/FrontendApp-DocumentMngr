@@ -9,7 +9,7 @@
       <div class="col-span-2">
         <label class="block text-xs font-medium mb-1" for="documentDate">Date</label>
         <input id="documentDate" type="date" name="documentDate" class="w-full border border-gray-300 rounded px-3 py-0.5" required locale="pl-PL"
-        [ngModel]="draft().documentDate" (ngModelChange)="onDocumentDateChange($event)"/>
+        [ngModel]="draft().documentDate" (ngModelChange)="updateDraft({ documentDate: $event })"/>
       </div>
       <div class="col-span-2">
         <label class="block text-xs font-medium mb-1">Type</label>
