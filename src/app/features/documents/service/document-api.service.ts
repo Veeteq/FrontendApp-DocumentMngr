@@ -34,7 +34,7 @@ export class DocumentApiService {
     return this.httpClient.post<void>(`${this.baseUrl}`, request, { observe: 'response' });
   }
 
-  getMatadata(property: string, pattern: string) {
+  getMetadata(property: string, pattern: string) {
     const params = new HttpParams()
       .set('property', property)
       .set('pattern', pattern)

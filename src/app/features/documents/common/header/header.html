@@ -7,8 +7,8 @@
     <!-- Date | Type | Document Name | Invoice Number -->
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-2">
-        <label class="block text-xs font-medium mb-1">Date</label>
-        <input type="date" name="documentDate" class="w-full border border-gray-300 rounded px-3 py-0.5" required        
+        <label class="block text-xs font-medium mb-1" for="documentDate">Date</label>
+        <input id="documentDate" type="date" name="documentDate" class="w-full border border-gray-300 rounded px-3 py-0.5" required locale="pl-PL"
         [ngModel]="draft().documentDate" (ngModelChange)="updateDraft({ documentDate: $event })"/>
       </div>
       <div class="col-span-2">
@@ -22,7 +22,7 @@
         @if (hasValidationError('Document type is required')) {
           <p class="mt-1 text-[11px] text-red-600">Document type is required</p>
         }
-      </div>    
+      </div>
       <div class="col-span-5">
         <label class="block text-xs font-medium mb-1">Document name</label>
         <app-document-name-autocomplete [value]="draft().documentName" (nameChanged)="onDocumentNameChanged($event)"/>
@@ -34,11 +34,11 @@
       <div class="col-span-3">
         <label class="block text-xs font-medium mb-1">Invoice Number</label>
         <input type="text" name="invoiceNumber" class="w-full border rounded px-3 py-0.5 disabled:bg-gray-100 disabled:text-gray-400" placeholder="Invoice number"
-        [ngModel]="draft().invoiceNumber" 
+        [ngModel]="draft().invoiceNumber"
         (ngModelChange)="updateDraft({ invoiceNumber: $event })"
         [disabled]="!invoiceNumberEnabled()"
         [required]="invoiceNumberEnabled()"/>
-      </div>      
+      </div>
     </div>
 
     <!-- Account | Counterparty -->
@@ -56,6 +56,6 @@
         @if (hasValidationError('Counterparty is required')) {
           <p class="mt-1 text-[11px] text-red-600">Counterparty is required</p>
         }
-      </div>  
+      </div>
     </div>
   </div>
