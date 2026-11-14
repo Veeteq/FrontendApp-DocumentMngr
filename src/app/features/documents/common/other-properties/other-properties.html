@@ -13,6 +13,9 @@
               <option [ngValue]="paymentMethod">{{ paymentMethod }}</option>
             }
         </select>
+        @if (hasValidationError('Payment method is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Payment method is required</p>
+        }
       </div>
 
       <div class="col-span-3">
@@ -24,6 +27,9 @@
             <option [ngValue]="currency">{{ currency }}</option>
           }
         </select>
+        @if (hasValidationError('Currency is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Currency is required</p>
+        }
       </div>
 
       <div class="col-span-4">
@@ -36,6 +42,9 @@
           [readonly]="!exchangeRateEditable()" 
           (valueChange)="updateDraft({ exchangeRate: $event ?? 1 })" />          
       </div>
+      @if (hasValidationError('Exchange rate must be greater than zero')) {
+        <p class="mt-1 text-[11px] text-red-600">Exchange rate must be greater than zero</p>
+      }
     </div>
   
     <!-- Document Comment Row -->  

@@ -16,6 +16,7 @@ import { PaymentMethod } from '../../model/payment-method.model';
 })
 export class OtherProperties {
   readonly draft = input.required<DocumentDraft>();
+  readonly validationErrors = input<string[]>([]);
   readonly draftChange = output<Partial<DocumentDraft>>();
   readonly currencies = Object.values(Currency);
     readonly paymentMethods = [
@@ -51,4 +52,7 @@ export class OtherProperties {
     });
   }
 
+  hasValidationError(message: string): boolean {
+    return this.validationErrors().includes(message);
+  }
 }

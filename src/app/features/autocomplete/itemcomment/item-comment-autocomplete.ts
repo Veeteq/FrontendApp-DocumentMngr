@@ -47,7 +47,7 @@ export class ItemCommentAutocompleteComponent {
 
           this.loading.set(true);
 
-          return this.documentApi.getMatadata("documentItemComment", trimmed)
+          return this.documentApi.getMetadata("documentItemComment", trimmed)
           .pipe(
             catchError(() => {
               this.error.set('Failed to load items');
