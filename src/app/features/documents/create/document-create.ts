@@ -20,6 +20,7 @@ import { ItemType } from '../model/item-type.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
+import { DocumentValidationService } from '../service/document-validation.service';
 
 
 @Component({
@@ -42,6 +43,7 @@ export class DocumentCreate implements OnInit {
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly documentValidationService = inject(DocumentValidationService);
 
   // Temporary reference data
   readonly itemTypes = Object.values(ItemType);
@@ -195,29 +197,11 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  private validateDocument(): string[] {
-    const errors: string[] = [];
+  private validateDocument(): string[] {    
     const document = this.repository.draft();
-    if (!document) {
-      errors.push('Document is empty');
-      return errors;
-    }
-    if (!document.account) errors.push('Account is required');
-    if (!document.documentType) errors.push('Document type is required');
-    if (!document.documentName?.trim()) errors.push('Document name is required');
-    if (!document.documentDate) errors.push('Document date is required');
+    if (!document) return ['Document is empty'];
 
-    // Counterparty
-    if ((document.documentType === DocumentType.BILL || document.documentType === DocumentType.INVOICE) && !document.counterparty)
-      errors.push('Counterparty is required');
-
-    // Invoice
-    if (document.documentType === DocumentType.INVOICE && !document.invoiceNumber?.trim()) errors.push('Invoice number is required');
-
-    // Payment
-    if (!document.paymentMethod) errors.push('Payment method is required');
-    if (!document.currencyCode) errors.push('Currency is required');
-    if (document.exchangeRate == null || document.exchangeRate <= 0) errors.push('Exchange rate must be greater than zero');
+    const errors = this.documentValidationService.validateCommonFields(document);
 
     // Items
     const items = document.documentItems;
@@ -225,9 +209,9 @@ export class DocumentCreate implements OnInit {
     items.forEach((item, index) => {
       const itemNo = index + 1;
       if (!item.itemType) errors.push(`Item #${itemNo}: type is required`);
-      if (!item.item) errors.push(`Item #${itemNo}: item is required`);
-      if (item.itemQuantity == null || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
-      if (item.itemPrice == null || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
+      if (!item.item) errors.push(`Item #${itemNo}: item is required`);      
+      if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
+      if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
     });
 
     return errors;
@@ -260,8 +244,8 @@ export class DocumentCreate implements OnInit {
   private toCreateDocumentItemRequest(item: DocumentItemDraft, index: number): CreateDocumentItemRequest {
     if (!item.itemType) throw new Error(`Item #${index + 1}: type is required`);
     if (!item.item) throw new Error(`Item #${index + 1}: item is required`);
-    if (item.itemQuantity == null || item.itemQuantity <= 0) throw new Error(`Item #${index + 1}: quantity must be greater than 0`);
-    if (item.itemPrice == null || item.itemPrice <= 0) throw new Error(`Item #${index + 1}: price must be greater than 0`);
+    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) throw new Error(`Item #${index + 1}: quantity must be greater than 0`);
+    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) throw new Error(`Item #${index + 1}: price must be greater than 0`);
     return {
       itemType: item.itemType,
       itemId: item.item.itemId,
