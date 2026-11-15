@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ApplicationHttpError, getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
+import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
+import { ApplicationError } from '../../../core/model/application-error.model';
 import { ToastService } from '../../common/toast/toast.service';
 import { Document } from '../model/document.model';
 import { PagedResponse } from '../model/paged-response.model';
@@ -46,7 +47,7 @@ export class List implements OnInit {
       next: (response) => {
         this.result.set(response);
       },
-      error: (error: ApplicationHttpError) => {
+      error: (error: ApplicationError) => {
         this.handleHttpError(error, 'Failed to load documents');
       }
     });

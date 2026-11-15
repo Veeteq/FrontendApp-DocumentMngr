@@ -4,8 +4,9 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { httpErrorInterceptor } from './core/auth/http-error.interceptor';
-import { requestContextInterceptor } from './core/http/request-context.interceptor';
 import { ConfigService } from './core/config/config.service';
+import { requestContextInterceptor } from './core/http/request-context.interceptor';
+import { timeoutInterceptor } from './core/http/timeout.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,7 +16,7 @@ export const appConfig: ApplicationConfig = {
       return configService.load();
     }),
     provideHttpClient(
-      withInterceptors([httpErrorInterceptor, authInterceptor, requestContextInterceptor]),
+      withInterceptors([httpErrorInterceptor, authInterceptor, requestContextInterceptor, timeoutInterceptor]),
     ),
     provideRouter(routes),
   ],

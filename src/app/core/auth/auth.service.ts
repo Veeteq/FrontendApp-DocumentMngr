@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, Observable, shareReplay, tap } from 'rxjs';
-import { LoginResponse } from '../../model/login-response';
-import { RefreshTokenResponse } from '../../model/refresh-token-response';
 import { ConfigService } from '../config/config.service';
+import { LoginResponse } from '../model/login-response';
+import { RefreshTokenResponse } from '../model/refresh-token-response';
 import { AuthStore } from './auth.store';
 
 @Injectable({
