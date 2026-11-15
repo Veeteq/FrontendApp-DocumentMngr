@@ -1,28 +1,55 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
-
-export interface ApplicationHttpError {
-  message: string;
-  originalError: HttpErrorResponse;
-}
+import { catchError, throwError, TimeoutError } from 'rxjs';
+import { ApplicationError, ApplicationErrorType } from '../model/application-error.model';
 
 export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: unknown) => {
-      if (error instanceof HttpErrorResponse) {
-        const normalizedError: ApplicationHttpError = {
-          message: getErrorMessage(error),
-          originalError: error,
-        };
-
-        return throwError(() => normalizedError);
-      }
-      return throwError(() => error);
-    }),
+      const applicationError = normalizeError(error);
+      console.error('HTTP request failed:', applicationError);
+      return throwError(() => applicationError);
+    })
   );
 };
 
-function getErrorMessage(error: HttpErrorResponse): string {
+function normalizeError(error: unknown): ApplicationError {
+  // 1. Handle RxJS TimeoutError specifically
+  if (error instanceof TimeoutError) {
+    const timeoutMsg = 'Request timed out. Please check your network connection or server status.';
+    console.error('HTTP Timeout Interceptor:', error);
+    return {
+      type: 'timeout',
+      message: 'Request timed out. Please try again.',
+      originalError: error,
+    };
+  }
+
+  if (error instanceof HttpErrorResponse) {
+    if (error.status === 0) {
+      return {
+        type: 'network',
+        message: 'Nie można połączyć się z serwerem. Sprawdź połączenie sieciowe.',
+        originalError: error,
+        status: error.status,
+      };
+    }
+
+    return {
+      type: 'http',
+      message: getHttpErrorMessage(error),
+      originalError: error,
+      status: error.status,
+    };
+  }
+
+  return {
+    type: 'unknown',
+    message: 'Unexpected error. Try again later.',
+    originalError: error,
+  };
+}
+
+function getHttpErrorMessage(error: HttpErrorResponse): string {
   let message: string;
 
   if (error.status === 0) {
@@ -41,13 +68,26 @@ function getErrorMessage(error: HttpErrorResponse): string {
   return message;
 }
 
-export function isApplicationHttpError(error: unknown): error is ApplicationHttpError {
+export function isApplicationError(error: unknown): error is ApplicationError {
   if (typeof error !== 'object' || error === null) {
     return false;
   }
-  return ('message' in error && typeof error.message === 'string' && 'originalError' in error && error.originalError instanceof HttpErrorResponse);
+
+  const candidate = error as Partial<ApplicationError>;
+  const validTypes: ApplicationErrorType[] = [
+    'http',
+    'timeout',
+    'network',
+    'unknown',
+  ];
+
+  return (
+    typeof candidate.message === 'string' &&
+    typeof candidate.type === 'string' &&
+    validTypes.includes(candidate.type as ApplicationErrorType) && 'originalError' in candidate
+  );
 }
 
 export function getApplicationErrorMessage(error: unknown, fallback = 'Nie udało się wykonać operacji.'): string {
-  return isApplicationHttpError(error) ? error.message : fallback;
+  return isApplicationError(error) ? error.message : fallback;
 }

@@ -9,6 +9,7 @@ import { AuthStore } from './auth.store';
 import { AuthService } from './auth.service';
 import { of, throwError } from 'rxjs';
 import { ConfigService } from '../config/config.service';
+import { ApplicationError } from '../model/application-error.model';
 
 describe('authInterceptor', () => {
   let httpTestingController: HttpTestingController;
@@ -135,36 +136,104 @@ describe('authInterceptor', () => {
   });
 
 
-  it('should expire the session when token refresh fails', () => {
-    authStore.setAccessToken('old-access-token');
+it('should expire the session when refresh token is rejected with 401', () => {
+  authStore.setAccessToken('old-access-token');
 
-    const authService = TestBed.inject(AuthService);
-    const refreshError = new Error('Refresh failed');
+  const authService = TestBed.inject(AuthService);
 
-    vi.mocked(authService.refreshTokenShared).mockReturnValue(
-      throwError(() => refreshError),
-    );
+  const refreshError: ApplicationError = {
+    type: 'http',
+    message: 'Refresh token rejected',
+    originalError: new Error('Unauthorized'),
+    status: 401,
+  };
 
-    const http = TestBed.inject(HttpClient);
-    let receivedError: unknown;
+  vi.mocked(authService.refreshTokenShared).mockReturnValue(
+    throwError(() => refreshError),
+  );
 
-    http.get('/api/v1/documents').subscribe({
-      error: error => {
-        receivedError = error;
-      },
-    });
+  const http = TestBed.inject(HttpClient);
 
-    const originalRequest = httpTestingController.expectOne('/api/v1/documents');
-
-    originalRequest.flush(
-      { message: 'Unauthorized' },
-      { status: 401, statusText: 'Unauthorized' },
-    );
-
-    expect(receivedError).toBe(refreshError);
-    expect(authService.handleSessionExpired).toHaveBeenCalledTimes(1);
-    expect(authService.refreshTokenShared).toHaveBeenCalledTimes(1);
+  http.get('/api/v1/documents').subscribe({
+    error: () => {},
   });
+
+  const request = httpTestingController.expectOne('/api/v1/documents');
+
+  request.flush(
+    { message: 'Unauthorized' },
+    { status: 401, statusText: 'Unauthorized' },
+  );
+
+  expect(authService.handleSessionExpired).toHaveBeenCalledTimes(1);
+});
+
+it('should not expire the session when refresh fails with a server error', () => {
+  authStore.setAccessToken('old-access-token');
+
+  const authService = TestBed.inject(AuthService);
+
+  const refreshError: ApplicationError = {
+    type: 'http',
+    message: 'Server error',
+    originalError: new Error('Internal Server Error'),
+    status: 500,
+  };
+
+  vi.mocked(authService.refreshTokenShared).mockReturnValue(
+    throwError(() => refreshError),
+  );
+
+  const http = TestBed.inject(HttpClient);
+  let receivedError: unknown;
+
+  http.get('/api/v1/documents').subscribe({
+    error: error => {
+      receivedError = error;
+    },
+  });
+
+  const request = httpTestingController.expectOne('/api/v1/documents');
+
+  request.flush(
+    { message: 'Unauthorized' },
+    { status: 401, statusText: 'Unauthorized' },
+  );
+
+  expect(receivedError).toBe(refreshError);
+  expect(authService.handleSessionExpired).not.toHaveBeenCalled();
+});
+
+it('should not expire the session when refresh request times out', () => {
+  authStore.setAccessToken('old-access-token');
+
+  const authService = TestBed.inject(AuthService);
+
+  const refreshError: ApplicationError = {
+    type: 'timeout',
+    message: 'Request timed out. Please try again.',
+    originalError: new Error('Timeout'),
+  };
+
+  vi.mocked(authService.refreshTokenShared).mockReturnValue(
+    throwError(() => refreshError),
+  );
+
+  const http = TestBed.inject(HttpClient);
+
+  http.get('/api/v1/documents').subscribe({
+    error: () => {},
+  });
+
+  const request = httpTestingController.expectOne('/api/v1/documents');
+
+  request.flush(
+    { message: 'Unauthorized' },
+    { status: 401, statusText: 'Unauthorized' },
+  );
+
+  expect(authService.handleSessionExpired).not.toHaveBeenCalled();
+});
 
 
   it('should expire the session if refresh succeeds without an access token', () => {
@@ -208,4 +277,80 @@ describe('authInterceptor', () => {
     expect(authService.handleSessionExpired).toHaveBeenCalledTimes(1);
   });
 
+  it('should not expire the session when the retried request fails', () => {
+    authStore.setAccessToken('old-access-token');
+
+    const authService = TestBed.inject(AuthService);
+
+    vi.mocked(authService.refreshTokenShared).mockImplementation(() => {
+      authStore.setAccessToken('new-access-token');
+
+      return of({
+        token: 'new-access-token',
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        refreshTokenExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60_000).toISOString(),
+        type: 'Bearer',
+        expiresIn: 60,
+      });
+    });
+
+    const http = TestBed.inject(HttpClient);
+    let receivedError: unknown;
+
+    http.get('/api/v1/documents').subscribe({
+      error: error => {
+        receivedError = error;
+      },
+    });
+
+    const originalRequest = httpTestingController.expectOne('/api/v1/documents');
+
+    originalRequest.flush(
+      { message: 'Unauthorized' },
+      { status: 401, statusText: 'Unauthorized' },
+    );
+
+    const retryRequest = httpTestingController.expectOne('/api/v1/documents');
+
+    expect(retryRequest.request.headers.get('Authorization'))
+      .toBe('Bearer new-access-token');
+
+    retryRequest.flush(
+      { message: 'Forbidden' },
+      { status: 403, statusText: 'Forbidden' },
+    );
+
+    expect(receivedError).toBeTruthy();
+    expect(authService.refreshTokenShared).toHaveBeenCalledTimes(1);
+    expect(authService.handleSessionExpired).not.toHaveBeenCalled();
+  });
+
+  it('should expire the session when token refresh fails with 403', () => {
+    authStore.setAccessToken('old-access-token');
+
+    const authService = TestBed.inject(AuthService);
+    const refreshError: ApplicationError = {
+      type: 'http',
+      message: 'Forbidden',
+      originalError: new Error('Forbidden'),
+      status: 403,
+    };
+
+    vi.mocked(authService.refreshTokenShared).mockReturnValue(
+      throwError(() => refreshError),
+    );
+
+    const http = TestBed.inject(HttpClient);
+
+    http.get('/api/v1/documents').subscribe({
+      error: () => { },
+    });
+
+    httpTestingController.expectOne('/api/v1/documents').flush(
+      { message: 'Unauthorized' },
+      { status: 401, statusText: 'Unauthorized' },
+    );
+
+    expect(authService.handleSessionExpired).toHaveBeenCalledTimes(1);
+  });
 });
