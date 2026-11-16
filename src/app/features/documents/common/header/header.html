@@ -38,6 +38,9 @@
         (ngModelChange)="updateDraft({ invoiceNumber: $event })"
         [disabled]="!invoiceNumberEnabled()"
         [required]="invoiceNumberEnabled()"/>
+        @if (hasValidationError('Invoice number is required')) {
+          <p class="mt-1 text-[11px] text-red-600">Invoice number is required</p>
+        }
       </div>
     </div>
 
