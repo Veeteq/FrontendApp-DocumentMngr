@@ -74,6 +74,7 @@
 
   <app-other-properties
     [draft]="currentDraft"
+    [validationErrors]="validationErrors()"
     (draftChange)="updateDraft($event)" />
 
   <!-- Action Panel -->
