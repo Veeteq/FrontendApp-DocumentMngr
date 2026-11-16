@@ -75,11 +75,7 @@ export class Header {
 
   onCounterpartySelected(counterparty: Counterparty) {
     this.updateDraft({
-      counterparty: {
-        id: counterparty.id,
-        name: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
-        displayName: counterparty.displayName,
-      },
+      counterparty: counterparty
     });
   }
 

@@ -109,11 +109,7 @@ export class Poc implements OnInit {
 
   onCounterpartySelected(counterparty: Counterparty) {
     this.repository.updateDraft({
-      counterparty: {
-        id: counterparty.id,
-        name: counterparty.companyName ?? counterparty.firstName + ' ' + counterparty.lastName,
-        displayName: counterparty.displayName,
-      },
+      counterparty: counterparty        
     });
   }
 
