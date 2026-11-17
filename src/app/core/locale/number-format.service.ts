@@ -30,7 +30,7 @@ export class NumberFormatService {
     if (value == null || !Number.isFinite(value)) return '';
     return new Intl.NumberFormat(this.locale, { useGrouping: false, minimumFractionDigits: 0, maximumFractionDigits: fractionDigits }).format(value);
   }
-  
+
   formatQuantity(value: number | null | undefined): string {
     return this.format(value, 3);
   }
@@ -47,4 +47,10 @@ export class NumberFormatService {
     const factor = Math.pow(10, fractionDigits);
     return Math.round(value * factor) / factor;
   }
+
+  roundHalfUp(value: number, fractionDigits: number): number {
+    const factor = 10 ** fractionDigits;
+    return Math.round((value + Number.EPSILON) * factor) / factor;
+  }
+
 }

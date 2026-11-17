@@ -16,15 +16,20 @@ export const DOCUMENTS_SIDEBAR: SidebarItem[] = [
   },
   {
     label: 'Simple document',
-      icon: '📝',
-    route: 'new'
+    icon: '📝',
+    route: 'simple'
+  },
+  {
+    label: 'Standard document',
+    icon: '📝',
+    route: 'standard'
   },
   {
     label: 'New Document',
     icon: '⬆️',
     route: 'poc'
   },
-    {
+  {
     label: 'Money Transfer',
     icon: '⬆️',
     route: 'transfer'

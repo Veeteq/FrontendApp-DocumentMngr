@@ -52,7 +52,7 @@ export class DocumentCreate implements OnInit {
   readonly creating = signal(false);
   readonly validationErrors = signal<string[]>([]);
   readonly draft = this.repository.draft;
-  
+
   ngOnInit(): void {
     this.repository.initDocument({
       documentDate: new Date().toISOString().substring(0, 10),
@@ -81,6 +81,10 @@ export class DocumentCreate implements OnInit {
     });
   }
 
+    onDocumentDateChange(documentDate: string) {
+    console.log("documentDate: " + documentDate);
+  }
+
   onItemSelected(item: Item): void {
     this.updateDocumentItem({ item });
   }
@@ -102,15 +106,33 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  getOriginalTotal(): string {
+  getOriginalTotal(): number  {
     const draft = this.repository.draft();
-    if (!draft) return '0';
+    if (!draft) return 0;
 
     const item = draft.documentItems[0];
-    if (!item) return '0';
+    if (!item) return 0;
 
-    const total = (item.itemQuantity ?? 0) * (item.itemPrice ?? 0);
-    return this.numberFormatService.format(total, 2);
+    const quantity = item.itemQuantity ?? 0
+    const price = item.itemPrice ?? 0;
+
+    const amount = this.numberFormatService.roundHalfUp(quantity * price, 2);
+    return item.itemType === ItemType.EXP ? -amount : amount;
+  }
+
+  getOriginalTotalClass(): string {
+    const draft = this.repository.draft();
+    if (!draft) return 'text-gray-700';
+
+    const item = draft.documentItems[0];
+    if (!item) return 'text-gray-700';
+
+    return item.itemType === ItemType.EXP ? 'text-red-600' : 'text-green-600';
+  }
+
+  formatAmount(value: number | null | undefined, fractionDigits: number): string {
+    if (value == null) return '';
+    return this.numberFormatService.format(value, fractionDigits);
   }
 
   submit() {
@@ -197,7 +219,7 @@ export class DocumentCreate implements OnInit {
     });
   }
 
-  private validateDocument(): string[] {    
+  private validateDocument(): string[] {
     const document = this.repository.draft();
     if (!document) return ['Document is empty'];
 
@@ -206,14 +228,18 @@ export class DocumentCreate implements OnInit {
     // Items
     const items = document.documentItems;
     if (items.length === 0) errors.push('At least one document item is required');
-    items.forEach((item, index) => {
-      const itemNo = index + 1;
-      if (!item.itemType) errors.push(`Item #${itemNo}: type is required`);
-      if (!item.item) errors.push(`Item #${itemNo}: item is required`);      
-      if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
-      if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
-    });
+    items.forEach((item, index) => errors.push(...this.validateDocumentItem(item, index)));
 
+    return errors;
+  }
+
+  private validateDocumentItem(item: DocumentItemDraft, index: number): string[] {
+    const errors: string[] = [];
+    const itemNo = index + 1;
+    if (!item.itemType) errors.push(`Item #${itemNo}: type is required`);
+    if (!item.item) errors.push(`Item #${itemNo}: item is required`);
+    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
+    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
     return errors;
   }
 
@@ -242,10 +268,12 @@ export class DocumentCreate implements OnInit {
   }
 
   private toCreateDocumentItemRequest(item: DocumentItemDraft, index: number): CreateDocumentItemRequest {
-    if (!item.itemType) throw new Error(`Item #${index + 1}: type is required`);
-    if (!item.item) throw new Error(`Item #${index + 1}: item is required`);
-    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) throw new Error(`Item #${index + 1}: quantity must be greater than 0`);
-    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) throw new Error(`Item #${index + 1}: price must be greater than 0`);
+    const itemNumber = index + 1;
+
+    if (!item.itemType) throw new Error(`Item #${itemNumber}: type is required`);
+    if (!item.item) throw new Error(`Item #${itemNumber}: item is required`);
+    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) throw new Error(`Item #${itemNumber}: quantity must be greater than 0`);
+    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) throw new Error(`Item #${itemNumber}: price must be greater than 0`);
     return {
       itemType: item.itemType,
       itemId: item.item.itemId,
@@ -257,13 +285,14 @@ export class DocumentCreate implements OnInit {
 
   private emptyToUndefined(value?: string): string | undefined {
     if (!value) return undefined;
-    return value?.trim() ? value.trim() : undefined;
+    const trimmed = value.trim();
+    return trimmed || undefined;
   }
 
-  private handleHttpError(error: unknown, userMessage: string) {
-    const errMsg = getApplicationErrorMessage(error, userMessage);
-    this.toastService.error(errMsg);
-    console.error(userMessage, error);
+  private handleHttpError(error: unknown, fallback: string): void {
+    const message = getApplicationErrorMessage(error, fallback);
+    this.toastService.error(message);
+    console.error(fallback, error);
   }
 
   private extractDocumentId(location: string | null): number | null {

@@ -23,6 +23,7 @@ export class Header {
   readonly draft = input.required<DocumentDraft>();
   readonly validationErrors = input<string[]>([]);
   readonly draftChange = output<Partial<DocumentDraft>>();
+  readonly documentDateChange = output<string>();
 
   readonly documentTypes = [
     DocumentType.NOTE, 
@@ -57,6 +58,14 @@ export class Header {
     }
 
     this.updateDraft(patch);
+  }
+
+  onDocumentDateChange(documentDate: string): void {
+    const patch: Partial<DocumentDraft> = {
+      documentDate,
+    };
+    this.updateDraft(patch);
+    this.documentDateChange.emit(documentDate);
   }
 
   onDocumentNameChanged(documentName: string): void {
