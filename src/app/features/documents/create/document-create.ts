@@ -3,8 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
-import { CreateDocumentItemRequest } from '../../../core/dto/create-document-item-request.model';
-import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { ItemAutocompleteComponent } from '../../autocomplete/item/item-autocomplete';
 import { ItemCommentAutocompleteComponent } from '../../autocomplete/itemcomment/item-comment-autocomplete';
@@ -20,8 +18,8 @@ import { ItemType } from '../model/item-type.model';
 import { Item } from '../model/item.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
+import { DocumentRequestMapperService } from '../service/document-request-mapper.service';
 import { DocumentValidationService } from '../service/document-validation.service';
-
 
 @Component({
   selector: 'app-document-create',
@@ -44,6 +42,7 @@ export class DocumentCreate implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly documentValidationService = inject(DocumentValidationService);
+  private readonly documentRequestMapper = inject(DocumentRequestMapperService);
 
   // Temporary reference data
   readonly itemTypes = Object.values(ItemType);
@@ -151,7 +150,7 @@ export class DocumentCreate implements OnInit {
     }
 
     // Convert to request DTO
-    const request = this.toCreateDocumentRequest(document);
+    const request = this.documentRequestMapper.toCreateDocumentRequest(document);
 
     //Send request to API
     this.creating.set(true);
@@ -224,69 +223,9 @@ export class DocumentCreate implements OnInit {
     if (!document) return ['Document is empty'];
 
     const errors = this.documentValidationService.validateCommonFields(document);
-
-    // Items
-    const items = document.documentItems;
-    if (items.length === 0) errors.push('At least one document item is required');
-    items.forEach((item, index) => errors.push(...this.validateDocumentItem(item, index)));
+    errors.push(...this.documentValidationService.validateDocumentItems(document.documentItems));
 
     return errors;
-  }
-
-  private validateDocumentItem(item: DocumentItemDraft, index: number): string[] {
-    const errors: string[] = [];
-    const itemNo = index + 1;
-    if (!item.itemType) errors.push(`Item #${itemNo}: type is required`);
-    if (!item.item) errors.push(`Item #${itemNo}: item is required`);
-    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
-    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
-    return errors;
-  }
-
-  private toCreateDocumentRequest(document: DocumentDraft): CreateDocumentRequest {
-    if (!document.account) throw new Error('Account is required');
-    if (!document.documentType) throw new Error('Document type is required');
-    if (!document.paymentMethod) throw new Error('Payment method is required');
-    if (!document.currencyCode) throw new Error('Currency is required');
-    if (document.exchangeRate == null) throw new Error('Exchange rate is required');
-
-    return {
-      documentDate: document.documentDate,
-      documentType: document.documentType,
-      documentName: this.emptyToUndefined(document.documentName),
-      documentDescription: this.emptyToUndefined(document.documentComment),
-      invoiceNumber: this.emptyToUndefined(document.invoiceNumber),
-      accountId: document.account.accountId,
-      counterpartyId: document.counterparty?.id,
-      payment: {
-        paymentMethod: document.paymentMethod,
-        currencyCode: document.currencyCode,
-        exchangeRate: document.exchangeRate,
-      },
-      documentItems: document.documentItems.map((item, index) => this.toCreateDocumentItemRequest(item, index)),
-    };
-  }
-
-  private toCreateDocumentItemRequest(item: DocumentItemDraft, index: number): CreateDocumentItemRequest {
-    const itemNumber = index + 1;
-
-    if (!item.itemType) throw new Error(`Item #${itemNumber}: type is required`);
-    if (!item.item) throw new Error(`Item #${itemNumber}: item is required`);
-    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) throw new Error(`Item #${itemNumber}: quantity must be greater than 0`);
-    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) throw new Error(`Item #${itemNumber}: price must be greater than 0`);
-    return {
-      itemType: item.itemType,
-      itemId: item.item.itemId,
-      itemQuantity: item.itemQuantity,
-      itemPrice: item.itemPrice,
-      itemDescription: this.emptyToUndefined(item.itemComment),
-    };
-  }
-
-  private emptyToUndefined(value?: string): string | undefined {
-    if (!value) return undefined;
-    const trimmed = value.trim();
-    return trimmed || undefined;
   }
 
   private handleHttpError(error: unknown, fallback: string): void {
