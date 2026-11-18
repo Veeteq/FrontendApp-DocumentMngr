@@ -1,5 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { LocaleService } from "./locale.service";
+import { ItemType } from "../../features/documents/model/item-type.model";
 
 @Injectable(
   { providedIn: 'root' }
@@ -51,6 +52,17 @@ export class NumberFormatService {
   roundHalfUp(value: number, fractionDigits: number): number {
     const factor = 10 ** fractionDigits;
     return Math.round((value + Number.EPSILON) * factor) / factor;
+  }
+
+  calculateDocumentItemTotal(quantity: number | null | undefined, price: number | null | undefined, itemType: ItemType | undefined): number {
+    const amount = this.roundHalfUp((quantity ?? 0) * (price ?? 0), 2);
+    return itemType === ItemType.EXP ? -amount : amount;
+  }
+
+  getTotalClass(total: number): string {
+    if (total < 0) return 'text-red-600';
+    if (total > 0) return 'text-green-600';
+    return 'text-gray-800';
   }
 
 }

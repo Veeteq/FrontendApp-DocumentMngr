@@ -23,24 +23,21 @@ export class DocumentRepositoryService {
 
     const document: DocumentDraft = {
       documentDate: base.documentDate ?? now.substring(0, 10),
-      documentType: base.documentType  ?? DocumentType.BILL,
+      documentType: base.documentType ?? DocumentType.BILL,
       documentName: base.documentName ?? '',
       documentComment: base.documentComment ?? '',
       invoiceNumber: base.invoiceNumber ?? '',
 
       account: base.account ?? null,
       counterparty: base.counterparty ?? null,
-      
+
       paymentMethod: base.paymentMethod ?? null,
       currencyCode: base.currencyCode ?? Currency.PLN,
       exchangeRate: base.exchangeRate ?? 1,
 
       documentItems: base.documentItems ?? [],
-    }    
+    }
     this._draft.set(document);
-  }
-
-  initDocumentItem() {
   }
   
   /**

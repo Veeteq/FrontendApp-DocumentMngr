@@ -5,8 +5,8 @@
   <!-- Left side: Document editor START-->
   <div class="col-span-8">
 
-  
-<form class="bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
+  <!-- Left side: Form editor START-->
+  <form class="bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
 
   <app-header
     [draft]="currentDraft"
@@ -17,67 +17,11 @@
   <!-- Document Item Panel -->
   <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
     <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Item</h2>
-
-    <!-- Header row -->
-    <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded px-2 pt-1">
-      <div class="col-span-2">Type</div>
-      <div class="col-span-4">Item</div>
-      <div class="col-span-1 text-right">Qty</div>
-      <div class="col-span-2 text-right">Unit Price</div>
-      <div class="col-span-3 text-right">Total</div>
-    </div>
-
-    <!-- Input row -->
-    <div class="grid grid-cols-12 gap-2 mt-1">
-      <div class="col-span-2">
-        <select name="documentItemType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
-          [ngModel]="draft()?.documentItems?.[0]?.itemType" (ngModelChange)="updateDocumentItem({ itemType: $event })">
-          @for (itemType of itemTypes; track itemType) {
-            <option value="{{ itemType }}">{{ itemType }}</option>
-          }
-        </select>
-      </div>
-  
-      <div class="col-span-4">
-        <app-item-autocomplete [value]="draft()?.documentItems?.[0]?.item" (itemSelected)="onItemSelected($event)"/>
-        @if (hasValidationError('Item #1: item is required')) {
-          <p class="mt-1 text-[11px] text-red-600">Item is required</p>
-        }
-      </div>
-
-      <div class="col-span-1">
-        <app-number-input inputName="documentItemQuantity" ariaLabel="Document item quantity"
-          [value]="draft()?.documentItems?.[0]?.itemQuantity ?? null" 
-          [fractionDigits]="3" 
-          [minimum]="0.001" 
-          [required]="true"
-          (valueChange)="updateDocumentItem({ itemQuantity: $event ?? 0 })" />
-      </div>
-  
-      <div class="col-span-2">
-        <app-number-input inputName="documentItemPrice" ariaLabel="Document item price"
-          [value]="draft()?.documentItems?.[0]?.itemPrice ?? null" 
-          [fractionDigits]="2" 
-          [minimum]="0.01" 
-          [required]="true"
-          (valueChange)="updateDocumentItem({ itemPrice: $event ?? 0 })" />
-        @if (hasValidationError('Item #1: price must be greater than 0')) {
-          <p class="mt-1 text-[11px] text-red-600">Price must be greater than 0</p>
-        }
-      </div>
-  
-      <div class="col-span-3">
-        <input class="w-full border border-gray-300 rounded px-3 py-0.5 bg-gray-100 text-right" readonly [class]="getOriginalTotalClass()" [value]="formatAmount(getOriginalTotal(), 2)" />
-      </div>      
-    </div>
-
-    <!-- Item Comment -->
-    <div class="mt-3">
-      <div>
-        <label class="block text-xs font-medium mb-1">Item Comment</label>
-        <app-item-comment-autocomplete (commentChanged)="onCommentChanged($event)"/>
-      </div>
-    </div>
+    <app-document-item-editor
+      [item]="currentDraft.documentItems[0]"
+      [itemTypes]="itemTypes"
+      [validationErrors]="validationErrors()"
+      (itemChange)="updateDocumentItem($event)"/>
   </div>
 
   <app-other-properties
@@ -93,13 +37,13 @@
         [disabled]="creating()" (click)="resetForm()">
         Reset
       </button>
-  
+
       <button type="submit"
         class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
         [disabled]="creating()">
         {{ creating() ? 'Creating...' : 'Create Document' }}
       </button>
-  
+
       <button type="button" routerLink="/documents/list"
         class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" [disabled]="creating()">
         Cancel
@@ -111,30 +55,7 @@
 
     <!-- Right: Documents for selected date START -->
     <aside class="col-span-4">
-      <div class="bg-white rounded-lg shadow p-3 space-y-2">
-
-        <!-- Document Header Panel -->
-        <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-
-          <!-- Header -->
-          <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Documents for:</h2>         
-          <div class="mt-0.5 text-xs text-gray-500">{{ currentDraft.documentDate }}</div>
-            
-          <!-- Empty state -->
-          <div class="flex min-h-40 items-center justify-center px-4 py-6 text-center">
-            <div>
-              <svg class="mx-auto mb-2 h-7 w-7 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5A3.375 3.375 0 0 0 10.125 2.25H6.75A2.25 2.25 0 0 0 4.5 4.5v15a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-5.25Z" />
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M13.5 2.25V6a2.25 2.25 0 0 0 2.25 2.25h3.75" />
-              </svg>
-              <p class="text-sm text-gray-500">No documents to display</p>
-              <p class="mt-1 text-xs text-gray-400">Documents for the selected date will appear here.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-documents-by-date [documentDate]="currentDraft.documentDate" />
     </aside> <!-- Right: Documents for selected date END -->
   </div> <!-- 12-column page definition END -->
 }

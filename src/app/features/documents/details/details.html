@@ -1,5 +1,7 @@
-<div class="max-w-4xl">
+<div class="grid grid-cols-12 gap-3 items-start">
 
+  <!-- Left side: Document editor START-->
+  <div class="col-span-8">
   @if (loading()) {
     <div class="mb-2 rounded-md border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm">Loading document...</div>
   }
@@ -20,8 +22,10 @@
   }
 
   @if (document(); as currentDocument) {
+      <div class="space-y-2 rounded-lg bg-white p-3 shadow">
+
     <!-- Document Header -->
-    <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+      <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
       <h2 class="text-sm font-semibold text-gray-700">Document Header</h2>
 
       <div class="mt-2 grid grid-cols-12 gap-4">      
@@ -66,25 +70,21 @@
       <app-base-details [document]="currentDocument" />
     } 
         
-
     <!-- Audit Information -->
     <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
       <h2 class="mb-2 text-sm font-semibold text-gray-700">Audit Information</h2>
 
       <div class="grid grid-cols-12 gap-4">
-
         <div class="col-span-6">
           <label class="mb-1 block text-xs font-medium">Created</label>
           <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
             [value]="formatDateTime(currentDocument.createDateTime)" />
         </div>
-
         <div class="col-span-6">
           <label class="mb-1 block text-xs font-medium">Last Updated</label>
           <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
             [value]="formatDateTime(currentDocument.updateDateTime)" />
         </div>
-
       </div>
     </div>
 
@@ -94,6 +94,14 @@
         Back to list
       </a>
     </div>
-  }
+      </div>
+    }
+  </div> <!-- Left side: Document editor END-->
 
+  <!-- Right: Documents for same date -->
+  @if (document(); as currentDocument) {
+    <aside class="col-span-4">
+      <app-documents-by-date [documentDate]="currentDocument.documentDate" />
+    </aside>
+  }
 </div>

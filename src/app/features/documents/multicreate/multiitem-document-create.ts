@@ -3,33 +3,31 @@ import { FormsModule } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
-import { CreateDocumentItemRequest } from "../../../core/dto/create-document-item-request.model";
-import { CreateDocumentRequest } from "../../../core/dto/create-document-request.model";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
-import { ItemAutocompleteComponent } from "../../autocomplete/item/item-autocomplete";
-import { ItemCommentAutocompleteComponent } from "../../autocomplete/itemcomment/item-comment-autocomplete";
-import { NumberInputComponent } from "../../common/numberinput/number-input";
 import { ToastService } from "../../common/toast/toast.service";
+import { DocumentItemEditor } from "../common/document-item-editor/document-item-editor";
+import { DocumentItemList } from "../common/document-item-list/document-item-list";
 import { Header } from "../common/header/header";
 import { OtherProperties } from "../common/other-properties/other-properties";
-import { Currency } from "../model/currency.model";
+import { DocumentsByDate } from "../documents-by-date/documents-by-date";
 import { DocumentDraft } from "../model/document-draft.model";
 import { DocumentItemDraft } from "../model/document-item-draft.model";
-import { DocumentType } from "../model/document-type.model";
 import { ItemType } from "../model/item-type.model";
 import { DocumentApiService } from "../service/document-api.service";
 import { DocumentRepositoryService } from "../service/document-repository.service";
+import { DocumentRequestMapperService } from "../service/document-request-mapper.service";
 import { DocumentValidationService } from "../service/document-validation.service";
+import { extractDocumentId } from "../service/document.utils";
 
 @Component({
   selector: 'app-multiitem-document-create',
   imports: [
     FormsModule,
     Header,
+    DocumentsByDate,
     OtherProperties,
-    ItemAutocompleteComponent,
-    ItemCommentAutocompleteComponent,
-    NumberInputComponent,
+    DocumentItemEditor,
+    DocumentItemList,
     RouterLink
   ],
   templateUrl: './multiitem-document-create.html',
@@ -41,6 +39,7 @@ export class MultiItemDocumentCreate implements OnInit {
   private readonly documentApi = inject(DocumentApiService);
   private readonly toastService = inject(ToastService);
   private readonly documentValidationService = inject(DocumentValidationService);
+  private readonly documentRequestMapper = inject(DocumentRequestMapperService);
   private readonly router = inject(Router);
 
   readonly itemTypes = Object.values(ItemType);
@@ -53,7 +52,7 @@ export class MultiItemDocumentCreate implements OnInit {
   readonly creating = signal(false);
 
   ngOnInit(): void {
-    this.initDocument();
+    this.repository.initDocument({});
   }
 
   initDocumentItem(): void {
@@ -72,18 +71,15 @@ export class MultiItemDocumentCreate implements OnInit {
   }
 
   saveDocumentItem() {
-    console.log('Check 1');
     const item = this.documentItemDraft();
     if (!item) return;
 
-    console.log('Check 2');
-    const errors = this.validateDocumentItem(item);
+    const errors = this.documentValidationService.validateDocumentItem(item);
     this.itemValidationErrors.set(errors);
     if (errors.length > 0) {
       console.log('errors: ' + errors);
       return;
     }
-    console.log('Check 3');
     const document = this.repository.draft();
     if (!document) return;
 
@@ -91,13 +87,11 @@ export class MultiItemDocumentCreate implements OnInit {
 
     if (editingIndex == null) {
       //Add
-      console.log('Check 4 - Add');
       this.repository.updateDraft({
         documentItems: [...document.documentItems, { ...item }],
       });
     } else {
       //Update
-      console.log('Check 4 - Update');
       this.repository.updateDraft({
         documentItems: document.documentItems.map((existingItem, index) =>
           index === editingIndex ? { ...item } : existingItem,
@@ -157,7 +151,8 @@ export class MultiItemDocumentCreate implements OnInit {
       return;
     }
 
-    const errors = this.validateDocument();
+    //Error handling
+    const errors = this.documentValidationService.validateDocument(document);
     this.validationErrors.set(errors);
 
     if (errors.length > 0) {
@@ -166,7 +161,10 @@ export class MultiItemDocumentCreate implements OnInit {
       return;
     }
 
-    const request = this.toCreateDocumentRequest(document);
+    // Convert to request DTO
+    const request = this.documentRequestMapper.toCreateDocumentRequest(document);
+
+    //Send request to API
     this.creating.set(true);
     this.documentApi
       .createDocument(request)
@@ -175,7 +173,7 @@ export class MultiItemDocumentCreate implements OnInit {
         next: (response) => {
           const location = response.headers.get('Location');
           this.toastService.success('Document created successfully');
-          const documentId = this.extractDocumentId(location);
+          const documentId = extractDocumentId(location);
           if (documentId != null) {
             this.router.navigate(['/documents/details', documentId]);
             return;
@@ -190,14 +188,21 @@ export class MultiItemDocumentCreate implements OnInit {
 
   resetForm(): void {
     this.validationErrors.set([]);
-    this.initDocument();
+    this.repository.initDocument({});
+  }
+
+  cancel() {
+    this.validationErrors.set([]);
+    this.repository.initDocument({});
+    this.router.navigate(['/documents/list']);
   }
 
   getItemTotal(item: DocumentItemDraft): number {
-    const quantity = item.itemQuantity ?? 0;
-    const price = item.itemPrice ?? 0;
-    const amount = this.numberFormatService.roundHalfUp(quantity * price, 2);
-    return item.itemType === ItemType.EXP ? -amount : amount;
+    return this.numberFormatService.calculateDocumentItemTotal(item.itemQuantity, item.itemPrice, item.itemType);
+  }
+
+  formatItemTotal(item: DocumentItemDraft): string {
+    return this.numberFormatService.format(this.getItemTotal(item), 2);
   }
 
   getDocumentTotal(): number {
@@ -208,117 +213,39 @@ export class MultiItemDocumentCreate implements OnInit {
     return this.numberFormatService.roundHalfUp(total, 2);
   }
 
-  formatItemTotal(item: DocumentItemDraft): string {
-    const total = this.getItemTotal(item);
-    return this.numberFormatService.format(total, 2);
-  }
-
   formatDocumentTotal(): string {
     return this.numberFormatService.format(this.getDocumentTotal(), 2);
   }
 
   formatAmount(value: number | null | undefined, fractionDigits: number): string {
-    if (value == null) return '';
     return this.numberFormatService.format(value, fractionDigits);
   }
 
   getItemTotalClass(item: DocumentItemDraft): string {
-    return item.itemType === ItemType.EXP ? 'text-red-600' : 'text-green-600';
+    return this.numberFormatService.getTotalClass(this.getItemTotal(item));
+  }
+
+  getExpensesTotal(): number {
+    return (this.draft()?.documentItems
+      .filter((item) => item.itemType === ItemType.EXP)
+      .reduce((sum, item) => sum + this.getItemTotal(item), 0) ?? 0
+    );
+  }
+
+  getIncomesTotal(): number {
+    return (this.draft()?.documentItems
+      .filter((item) => item.itemType === ItemType.INC)
+      .reduce((sum, item) => sum + this.getItemTotal(item), 0) ?? 0
+    );
   }
 
   getDocumentTotalClass(): string {
-    if (this.getDocumentTotal() < 0) return 'text-red-600';
-    if (this.getDocumentTotal() > 0) return 'text-green-600';
-    return 'text-gray-800';
-  }
-
-  private initDocument() {
-    this.repository.initDocument({
-      documentDate: new Date().toISOString().substring(0, 10),
-      documentType: DocumentType.BILL,
-      documentName: '',
-      documentComment: '',
-      invoiceNumber: '',
-
-      account: null,
-      counterparty: null,
-
-      paymentMethod: null,
-      currencyCode: Currency.PLN,
-      exchangeRate: 1,
-
-      documentItems: [],
-    });
-  }
-
-  private validateDocument(): string[] {
-    const document = this.repository.draft();
-    if (!document) return ['Document is empty'];
-
-    const errors = this.documentValidationService.validateCommonFields(document);
-    return errors;
-  }
-  
-  private validateDocumentItem(item: DocumentItemDraft): string[] {
-    const errors: string[] = [];
-    if (!item.itemType) errors.push('Item type is required');
-    if (!item.item) errors.push('Item is required');
-    if (item.itemQuantity == null || item.itemQuantity <= 0) errors.push('Quantity must be greater than 0');
-    if (item.itemPrice == null || item.itemPrice <= 0) errors.push('Price must be greater than 0');
-    return errors;
+    return this.numberFormatService.getTotalClass(this.getDocumentTotal());
   }
 
   private closeDocumentItemEditor(): void {
     this.documentItemDraft.set(null);
     this.itemValidationErrors.set([]);
-    this.documentItemDraft.set(null);
-  }
-
-  private toCreateDocumentRequest(document: DocumentDraft): CreateDocumentRequest {
-    if (!document.account) throw new Error('Account is required');
-    if (!document.documentType) throw new Error('Document type is required');
-    if (!document.paymentMethod) throw new Error('Payment method is required');
-    if (!document.currencyCode) throw new Error('Currency is required');
-    if (document.exchangeRate == null) throw new Error('Exchange rate is required');
-
-    return {
-      documentDate: document.documentDate,
-      documentType: document.documentType,
-      documentName: this.emptyToUndefined(document.documentName),
-      documentDescription: this.emptyToUndefined(document.documentComment),
-      invoiceNumber: this.emptyToUndefined(document.invoiceNumber),
-      accountId: document.account.accountId,
-      counterpartyId: document.counterparty?.id,
-      payment: {
-        paymentMethod: document.paymentMethod,
-        currencyCode: document.currencyCode,
-        exchangeRate: document.exchangeRate,
-      },
-      documentItems: document.documentItems.map((item, index) => this.toCreateDocumentItemRequest(item, index)),
-    };
-  }
-
-  private toCreateDocumentItemRequest(item: DocumentItemDraft, index: number): CreateDocumentItemRequest {
-    const itemNumber = index + 1;
-
-    if (!item.itemType) throw new Error(`Item #${itemNumber}: type is required`);
-    if (!item.item) throw new Error(`Item #${itemNumber}: item is required`);
-    if (item.itemQuantity === undefined || !Number.isFinite(item.itemQuantity) || item.itemQuantity <= 0) throw new Error(`Item #${itemNumber}: quantity must be greater than 0`);
-    if (item.itemPrice === undefined || !Number.isFinite(item.itemPrice) || item.itemPrice <= 0) throw new Error(`Item #${itemNumber}: price must be greater than 0`);
-
-    return {
-      itemType: item.itemType,
-      itemId: item.item.itemId,
-      itemQuantity: item.itemQuantity,
-      itemPrice: item.itemPrice,
-      itemDescription: this.emptyToUndefined(item.itemComment),
-    };
-  }
-
-  private emptyToUndefined(value?: string): string | undefined {
-    if (!value) return undefined;
-    const trimmed = value.trim();
-    return trimmed || undefined;
   }
 
   private handleHttpError(error: unknown, fallback: string): void {
@@ -327,11 +254,5 @@ export class MultiItemDocumentCreate implements OnInit {
     console.error(fallback, error);
   }
 
-  private extractDocumentId(location: string | null): number | null {
-    if (!location) return null;
-    const lastSegment = location.split('/').filter(Boolean).pop();
-    const documentId = Number(lastSegment);
-    return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
-  }
 
 }

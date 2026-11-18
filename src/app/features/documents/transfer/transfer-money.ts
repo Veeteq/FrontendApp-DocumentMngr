@@ -8,16 +8,18 @@ import { NumberFormatService } from "../../../core/locale/number-format.service"
 import { AccountAutocompleteComponent } from "../../autocomplete/account/account-autocomplete";
 import { NumberInputComponent } from "../../common/numberinput/number-input";
 import { ToastService } from "../../common/toast/toast.service";
+import { DocumentsByDate } from "../documents-by-date/documents-by-date";
 import { Account } from "../model/account.model";
 import { DocumentType } from "../model/document-type.model";
 import { MoneyTransferDraft, ProvisionAt } from '../model/money-transfer-draft.model';
 import { PaymentMethod } from "../model/payment-method.model";
 import { DocumentApiService } from "../service/document-api.service";
 import { TransferRepositoryService } from "../service/money-transfer-repository.service";
+import { extractDocumentId } from "../service/document.utils";
 
 @Component({
   selector: 'app-money-transfer',
-  imports: [FormsModule, AccountAutocompleteComponent, NumberInputComponent],
+  imports: [FormsModule, AccountAutocompleteComponent, NumberInputComponent, DocumentsByDate],
   templateUrl: './transfer-money.html',
   styleUrls: ['./transfer-money.css'],
 })
@@ -30,16 +32,16 @@ export class TransferMoney implements OnInit {
 
   // Temporary reference data
   readonly paymentMethods = [
-      PaymentMethod.CASH, 
-      PaymentMethod.ATM_WITHDRAWAL, 
-      PaymentMethod.ATM_DEPOSIT, 
+      PaymentMethod.CASH,
+      PaymentMethod.ATM_WITHDRAWAL,
+      PaymentMethod.ATM_DEPOSIT,
       PaymentMethod.BANK_TRANSFER
     ];
   readonly provisionAtOptions = [
     { value: ProvisionAt.SOURCE, label: 'Source Account' },
     { value: ProvisionAt.TARGET, label: 'Target Account' },
   ];
-  
+
   readonly creating = signal(false);
   readonly draft = this.repository.draft;
   readonly validationErrors = signal<string[]>([]);
@@ -77,15 +79,16 @@ export class TransferMoney implements OnInit {
   }
 
   getReceivedAmount(): number {
-    const exchangedAmount = this.getExchangedAmount();
-    const exchangeRate = this.draft()?.exchangeRate ?? 0;
-    if (!exchangeRate) return 0;
+    const transfer = this.draft();
+    if (!transfer) return 0;
 
+    const exchangedAmount = this.getExchangedAmount();
+    const exchangeRate = transfer.exchangeRate ?? 0;
+    if (!Number.isFinite(exchangeRate) || exchangeRate <= 0) return 0;
+    
     let result = exchangedAmount / exchangeRate;
 
-    if (this.draft()?.provisionAt === ProvisionAt.TARGET) {
-      result -= this.draft()?.provisionAmount ?? 0;
-    }
+    if (transfer.provisionAt === ProvisionAt.TARGET) result -= transfer.provisionAmount ?? 0;
 
     return Math.max(result, 0);
   }
@@ -96,7 +99,7 @@ export class TransferMoney implements OnInit {
 
   reverseExchangeRate() {
     const currentRate = this.draft()?.exchangeRate;
-    if (currentRate == null || currentRate <= 0) return;
+    if (currentRate == null || !Number.isFinite(currentRate) ||currentRate <= 0) return;
     this.updateDraft({ exchangeRate: 1 / currentRate });
   }
 
@@ -129,7 +132,7 @@ export class TransferMoney implements OnInit {
           console.log('Created resource:', location);
           this.toastService.success('Transfer created successfully');
 
-          const documentId = this.extractDocumentId(location);
+          const documentId = extractDocumentId(location);
           if (documentId != null) {
             this.router.navigate(['/documents/details', documentId]);
             return;
@@ -161,43 +164,25 @@ export class TransferMoney implements OnInit {
 
     // Transaction Date
     if (!transfer.transferDate) errors.push('Transaction date is required');
+    if (!transfer.paymentMethod) errors.push('Payment method is required');
 
     // Accounts
     if (!transfer.sourceAccount) errors.push('Source account is required');
     if (!transfer.targetAccount) errors.push('Target account is required');
-    if (
-      transfer.sourceAccount?.accountId &&
-      transfer.targetAccount?.accountId &&
-      transfer.sourceAccount.accountId === transfer.targetAccount.accountId
-    )
-      errors.push('Source and target account must be different');
+    if (transfer.sourceAccount?.accountId && transfer.targetAccount?.accountId && transfer.sourceAccount.accountId === transfer.targetAccount.accountId) errors.push('Source and target account must be different');
 
     // Amounts
-    if (transfer.transferAmount == null || transfer.transferAmount <= 0) errors.push('Transfer amount must be greater than 0');
-    if (transfer.exchangeRate == null || transfer.exchangeRate <= 0) errors.push('Exchange rate must be greater than 0');
+    if (!Number.isFinite(transfer.transferAmount) || transfer.transferAmount <= 0) errors.push('Transfer amount must be greater than 0');
+    if (!Number.isFinite(transfer.exchangeRate) || transfer.exchangeRate <= 0) errors.push('Exchange rate must be greater than 0');
+    if (transfer.provisionAmount != null && !Number.isFinite(transfer.provisionAmount)) errors.push('Provision amount must be a valid number');
     if (transfer.provisionAmount != null && transfer.provisionAmount < 0) errors.push('Provision amount cannot be negative');
     if (transfer.provisionAmount != null && transfer.provisionAmount > 0 && !transfer.provisionAt) errors.push('Provision location is required when provision amount is entered');
 
     // Currency consistency
     const sourceCurrency = transfer.sourceAccount?.accountCurrency;
     const targetCurrency = transfer.targetAccount?.accountCurrency;
-    if (
-      sourceCurrency &&
-      targetCurrency &&
-      sourceCurrency === targetCurrency &&
-      transfer.exchangeRate !== 1
-    )
-      errors.push('Exchange rate must be 1 when both accounts use the same currency');
-
-    if (
-      sourceCurrency &&
-      targetCurrency &&
-      sourceCurrency !== targetCurrency &&
-      transfer.exchangeRate === 1
-    )
-      errors.push('Exchange rate should not be 1 when accounts use different currencies');
-
-    if (!transfer.paymentMethod) errors.push('Payment method is required');
+    if (sourceCurrency && targetCurrency && sourceCurrency === targetCurrency && transfer.exchangeRate !== 1) errors.push('Exchange rate must be 1 when both accounts use the same currency');
+    if (sourceCurrency && targetCurrency && sourceCurrency !== targetCurrency && transfer.exchangeRate === 1) errors.push('Exchange rate should not be 1 when accounts use different currencies');
 
     return errors;
   }
@@ -240,10 +225,4 @@ export class TransferMoney implements OnInit {
     console.error(fallback, error);
   }
 
-  private extractDocumentId(location: string | null): number | null {
-    if (!location) return null;
-    const lastSegment = location.split('/').filter(Boolean).pop();
-    const documentId = Number(lastSegment);
-    return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
-  }
 }
