@@ -2,117 +2,117 @@
   <!-- 12-column page definition START -->
   <div class="grid grid-cols-12 gap-3 items-start">
 
-  <!-- Left side: Document editor START-->
-  <div class="col-span-8">
+    <!-- Left side: Document editor START-->
+    <div class="col-span-8">
 
-<!-- Left side: Form editor START-->
-<form class="bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
-
-  <app-header
-    [draft]="currentDraft"
-    [validationErrors]="validationErrors()"
-    (draftChange)="updateDraft($event)"
-    (documentDateChange)="onDocumentDateChange($event)"></app-header>
-
-  <!-- Document Item Panel -->
-  <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Item</h2>
-
-    <!-- Header row -->
-    <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded px-2 pt-1">
-      <div class="col-span-2">Type</div>
-      <div class="col-span-4">Item</div>
-      <div class="col-span-1 text-right">Qty</div>
-      <div class="col-span-2 text-right">Unit Price</div>
-      <div class="col-span-3 text-right">Total</div>
-    </div>
-
-    <!-- Input row -->
-    <div class="grid grid-cols-12 gap-2 mt-1">
-      <div class="col-span-2">
-        <select name="documentItemType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
-          [ngModel]="draft()?.documentItems?.[0]?.itemType" (ngModelChange)="updateDocumentItem({ itemType: $event })">
-          @for (itemType of itemTypes; track itemType) {
-            <option value="{{ itemType }}">{{ itemType }}</option>
-          }
-        </select>
-      </div>
-  
-      <div class="col-span-4">
-        <app-item-autocomplete [value]="draft()?.documentItems?.[0]?.item" (itemSelected)="onItemSelected($event)"/>
-        @if (hasValidationError('Item #1: item is required')) {
-          <p class="mt-1 text-[11px] text-red-600">Item is required</p>
-        }
-      </div>
-
-      <div class="col-span-1">
-        <app-number-input inputName="documentItemQuantity" ariaLabel="Document item quantity"
-          [value]="draft()?.documentItems?.[0]?.itemQuantity ?? null" 
-          [fractionDigits]="3" 
-          [minimum]="0.001" 
-          [required]="true"
-          (valueChange)="updateDocumentItem({ itemQuantity: $event ?? 0 })" />
-      </div>
-  
-      <div class="col-span-2">
-        <app-number-input inputName="documentItemPrice" ariaLabel="Document item price"
-          [value]="draft()?.documentItems?.[0]?.itemPrice ?? null" 
-          [fractionDigits]="2" 
-          [minimum]="0.01" 
-          [required]="true"
-          (valueChange)="updateDocumentItem({ itemPrice: $event ?? 0 })" />
-        @if (hasValidationError('Item #1: price must be greater than 0')) {
-          <p class="mt-1 text-[11px] text-red-600">Price must be greater than 0</p>
-        }
-      </div>
-  
-      <div class="col-span-3">
-        <input class="w-full border border-gray-300 rounded px-3 py-0.5 bg-gray-100 text-right" readonly [class]="getOriginalTotalClass()" [value]="formatAmount(getOriginalTotal(), 2)" />
-      </div>      
-    </div>
-
-    <!-- Item Comment -->
-    <div class="mt-3">
-      <div>
-        <label class="block text-xs font-medium mb-1">Item Comment</label>
-        <app-item-comment-autocomplete (commentChanged)="onCommentChanged($event)"/>
-      </div>
-    </div>
-  </div>
-
-  <app-other-properties
-    [draft]="currentDraft"
-    [validationErrors]="validationErrors()"
-    (draftChange)="updateDraft($event)" />
-
-  <!-- Action Panel -->
-  <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <div class="flex gap-2">
-      <button type="button"
-        class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        [disabled]="creating()" (click)="resetForm()">
-        Reset
-      </button>
-  
-      <button type="submit"
-        class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
-        [disabled]="creating()">
-        {{ creating() ? 'Creating...' : 'Create Simple' }}
-      </button>
+    <!-- Left side: Form editor START-->
+    <form class="bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
+    
+      <app-header
+        [draft]="currentDraft"
+        [validationErrors]="validationErrors()"
+        (draftChange)="updateDraft($event)"
+        (documentDateChange)="onDocumentDateChange($event)"></app-header>
+    
+      <!-- Document Item Panel -->
+      <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
+        <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Item</h2>
+    
+        <!-- Header row -->
+        <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded px-2 pt-1">
+          <div class="col-span-2">Type</div>
+          <div class="col-span-4">Item</div>
+          <div class="col-span-1 text-right">Qty</div>
+          <div class="col-span-2 text-right">Unit Price</div>
+          <div class="col-span-3 text-right">Total</div>
+        </div>
+    
+        <!-- Input row -->
+        <div class="grid grid-cols-12 gap-2 mt-1">
+          <div class="col-span-2">
+            <select name="documentItemType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
+              [ngModel]="draft()?.documentItems?.[0]?.itemType" (ngModelChange)="updateDocumentItem({ itemType: $event })">
+              @for (itemType of itemTypes; track itemType) {
+                <option value="{{ itemType }}">{{ itemType }}</option>
+              }
+            </select>
+          </div>
       
-      <button type="button"
-        class="rounded border border-blue-300 bg-white px-4 py-1 text-blue-700 hover:bg-blue-50"
-        [disabled]="creating()"
-        (click)="convertToStandard()">Convert To Standard
-      </button>
-  
-      <button type="button" routerLink="/documents/list"
-        class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" [disabled]="creating()">
-        Cancel
-      </button>
-    </div>
-  </div>
-</form> <!-- Left side: Form editor END-->
+          <div class="col-span-4">
+            <app-item-autocomplete [value]="draft()?.documentItems?.[0]?.item" (itemSelected)="onItemSelected($event)"/>
+            @if (hasValidationError('Item #1: item is required')) {
+              <p class="mt-1 text-[11px] text-red-600">Item is required</p>
+            }
+          </div>
+    
+          <div class="col-span-1">
+            <app-number-input inputName="documentItemQuantity" ariaLabel="Document item quantity"
+              [value]="draft()?.documentItems?.[0]?.itemQuantity ?? null" 
+              [fractionDigits]="3" 
+              [minimum]="0.001" 
+              [required]="true"
+              (valueChange)="updateDocumentItem({ itemQuantity: $event ?? 0 })" />
+          </div>
+      
+          <div class="col-span-2">
+            <app-number-input inputName="documentItemPrice" ariaLabel="Document item price"
+              [value]="draft()?.documentItems?.[0]?.itemPrice ?? null" 
+              [fractionDigits]="2" 
+              [minimum]="0.01" 
+              [required]="true"
+              (valueChange)="updateDocumentItem({ itemPrice: $event ?? 0 })" />
+            @if (hasValidationError('Item #1: price must be greater than 0')) {
+              <p class="mt-1 text-[11px] text-red-600">Price must be greater than 0</p>
+            }
+          </div>
+      
+          <div class="col-span-3">
+            <input class="w-full border border-gray-300 rounded px-3 py-0.5 bg-gray-100 text-right" readonly [class]="getOriginalTotalClass()" [value]="formatAmount(getOriginalTotal(), 2)" />
+          </div>      
+        </div>
+    
+        <!-- Item Comment -->
+        <div class="mt-3">
+          <div>
+            <label class="block text-xs font-medium mb-1">Item Comment</label>
+            <app-item-comment-autocomplete (commentChanged)="onCommentChanged($event)"/>
+          </div>
+        </div>
+      </div>
+    
+      <app-other-properties
+        [draft]="currentDraft"
+        [validationErrors]="validationErrors()"
+        (draftChange)="updateDraft($event)" />
+    
+      <!-- Action Panel -->
+      <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
+        <div class="flex gap-2">
+          <button type="button"
+            class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="creating()" (click)="resetForm()">
+            Reset
+          </button>
+      
+          <button type="submit"
+            class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+            [disabled]="creating()">
+            {{ creating() ? 'Creating...' : 'Create Simple' }}
+          </button>
+      
+          <button type="button"
+            class="rounded border border-blue-300 bg-white px-4 py-1 text-blue-700 hover:bg-blue-50"
+            [disabled]="creating()"
+            (click)="convertToStandard()">Convert To Standard
+          </button>
+    
+          <button type="button" routerLink="/documents/list"
+            class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" [disabled]="creating()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form> <!-- Left side: Form editor END-->
     </div> <!-- Left side: Document editor END-->
 
     <!-- Right: Documents for selected date START -->
