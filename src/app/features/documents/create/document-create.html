@@ -5,7 +5,7 @@
   <!-- Left side: Document editor START-->
   <div class="col-span-8">
 
-  
+<!-- Left side: Form editor START-->
 <form class="bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
 
   <app-header
@@ -97,7 +97,13 @@
       <button type="submit"
         class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
         [disabled]="creating()">
-        {{ creating() ? 'Creating...' : 'Create Document' }}
+        {{ creating() ? 'Creating...' : 'Create Simple' }}
+      </button>
+      
+      <button type="button"
+        class="rounded border border-blue-300 bg-white px-4 py-1 text-blue-700 hover:bg-blue-50"
+        [disabled]="creating()"
+        (click)="convertToStandard()">Convert To Standard
       </button>
   
       <button type="button" routerLink="/documents/list"
@@ -106,7 +112,7 @@
       </button>
     </div>
   </div>
-</form>
+</form> <!-- Left side: Form editor END-->
     </div> <!-- Left side: Document editor END-->
 
     <!-- Right: Documents for selected date START -->

@@ -53,6 +53,9 @@ export class MultiItemDocumentCreate implements OnInit {
   readonly creating = signal(false);
 
   ngOnInit(): void {
+    const requested = this.repository.checkRequestConversion();
+    if (requested && this.repository.draft()) return; //DO NOT init document if document is converted from simple to standard
+
     this.initDocument();
   }
 
@@ -193,6 +196,11 @@ export class MultiItemDocumentCreate implements OnInit {
     this.initDocument();
   }
 
+  cancel() {
+    this.validationErrors.set([]);
+    this.initDocument();
+    this.router.navigate(['/documents/list']);
+  }
   getItemTotal(item: DocumentItemDraft): number {
     const quantity = item.itemQuantity ?? 0;
     const price = item.itemPrice ?? 0;
@@ -258,7 +266,7 @@ export class MultiItemDocumentCreate implements OnInit {
     const errors = this.documentValidationService.validateCommonFields(document);
     return errors;
   }
-  
+
   private validateDocumentItem(item: DocumentItemDraft): string[] {
     const errors: string[] = [];
     if (!item.itemType) errors.push('Item type is required');

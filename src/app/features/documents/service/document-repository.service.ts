@@ -10,9 +10,11 @@ export class DocumentRepositoryService {
 
   /** Internal signal holding the draft document */
   private readonly _draft = signal<DocumentDraft | null>(null);
+  private readonly _conversionRequested = signal(false);
 
    /** Public read-only access to the draft */
   readonly draft = this._draft.asReadonly();
+  readonly conversionRequested = this._conversionRequested.asReadonly();
 
   /**
    * Initialize a new empty document draft.
@@ -62,6 +64,17 @@ export class DocumentRepositoryService {
    */
   reset() {
     this._draft.set(null);
+  }
+
+  requestConverstion() {
+    console.log("requestConverstion");
+    this._conversionRequested.set(true);
+  }
+
+  checkRequestConversion(): boolean {
+    const requested = this._conversionRequested();
+    this._conversionRequested.set(false);
+    return requested;
   }
 
 }
