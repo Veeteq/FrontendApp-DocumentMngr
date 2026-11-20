@@ -75,7 +75,7 @@
     <div class="mt-3">
       <div>
         <label class="block text-xs font-medium mb-1">Item Comment</label>
-        <app-item-comment-autocomplete (commentChanged)="onCommentChanged($event)"/>
+        <app-item-comment-autocomplete [value]="draft()?.documentItems?.[0]?.itemComment" (commentChanged)="onCommentChanged($event)"/>
       </div>
     </div>
   </div>

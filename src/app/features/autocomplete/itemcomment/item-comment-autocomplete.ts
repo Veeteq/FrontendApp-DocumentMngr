@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, output, signal } from "@angular/core";
+import { Component, DestroyRef, effect, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap } from "rxjs";
 
@@ -15,6 +15,7 @@ export class ItemCommentAutocompleteComponent {
   private readonly documentApi = inject(DocumentApiService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly value = input<string | undefined>('');
   readonly commentSelected = output<string>();
   readonly commentChanged = output<string>();
 
@@ -30,6 +31,18 @@ export class ItemCommentAutocompleteComponent {
   private readonly search$ = new Subject<string>();
 
   constructor() {
+    effect(() => {
+      const comment = this.value();
+      this.searchText.set(comment ?? '');
+      this.selectedComment.set(comment || null);
+      if (!comment) {
+        this.documentComments.set([]);
+        this.opened.set(false);
+        this.highlightedIndex.set(-1);
+        this.error.set(null);
+      }
+    });
+
     this.search$
       .pipe(
         debounceTime(300),
@@ -48,13 +61,13 @@ export class ItemCommentAutocompleteComponent {
           this.loading.set(true);
 
           return this.documentApi.getMetadata("documentItemComment", trimmed)
-          .pipe(
-            catchError(() => {
-              this.error.set('Failed to load items');
-              return of([]);
-            }),
-            finalize(() => this.loading.set(false)),
-          );
+            .pipe(
+              catchError(() => {
+                this.error.set('Failed to load items');
+                return of([]);
+              }),
+              finalize(() => this.loading.set(false)),
+            );
         }),
         takeUntilDestroyed(this.destroyRef),
       )

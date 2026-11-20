@@ -182,8 +182,7 @@
           <!-- Comment -->
           <div class="mt-3">
             <label class="mb-1 block text-xs font-medium">Item Comment</label>
-            <app-item-comment-autocomplete
-            (commentChanged)="updateDocumentItemDraft({itemComment: $event})"/>
+            <app-item-comment-autocomplete [value]="item.itemComment" (commentChanged)="updateDocumentItemDraft({itemComment: $event})"/>
           </div>
 
           <!-- Editor actions -->
