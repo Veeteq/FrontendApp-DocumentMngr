@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port=4201 --configuration production",
+    "start":         "ng serve --port=4201 --configuration development",
+    "start:no-auth": "ng serve --port=4201 --configuration=no-auth",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
