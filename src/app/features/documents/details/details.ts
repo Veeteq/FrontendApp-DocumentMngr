@@ -10,7 +10,7 @@ import { DocumentApiService } from "../service/document-api.service";
 import { BaseDetails } from "./base-details/base-details";
 import { TransferDetails } from "./transfer-details/transfer-details";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { DocumentsByDate } from "../documents-by-date/documents-by-date";
+import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 
 @Component({
   selector: 'app-details',

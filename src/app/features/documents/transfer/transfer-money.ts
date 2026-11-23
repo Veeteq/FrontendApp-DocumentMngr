@@ -8,7 +8,7 @@ import { NumberFormatService } from "../../../core/locale/number-format.service"
 import { AccountAutocompleteComponent } from "../../autocomplete/account/account-autocomplete";
 import { NumberInputComponent } from "../../common/numberinput/number-input";
 import { ToastService } from "../../common/toast/toast.service";
-import { DocumentsByDate } from "../documents-by-date/documents-by-date";
+import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 import { Account } from "../model/account.model";
 import { DocumentType } from "../model/document-type.model";
 import { MoneyTransferDraft, ProvisionAt } from '../model/money-transfer-draft.model';
