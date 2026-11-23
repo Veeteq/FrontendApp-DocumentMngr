@@ -5,52 +5,53 @@
     <!-- Left side: Document editor START-->
     <div class="col-span-8">
 
-  <!-- Left side: Form editor START-->
-  <form class="bg-white rounded-lg shadow p-3 space-y-2" (ngSubmit)="submit()">
-
-  <app-header
-    [draft]="currentDraft"
-    [validationErrors]="validationErrors()"
-    (draftChange)="updateDraft($event)"
-    (documentDateChange)="onDocumentDateChange($event)"></app-header>
-
-  <!-- Document Item Panel -->
-  <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Item</h2>
-    <app-document-item-editor
-      [item]="currentDraft.documentItems[0]"
-      [itemTypes]="itemTypes"
-      [validationErrors]="validationErrors()"
-      (itemChange)="updateDocumentItem($event)"/>
-  </div>
-
-  <app-other-properties
-    [draft]="currentDraft"
-    [validationErrors]="validationErrors()"
-    (draftChange)="updateDraft($event)" />
-
-  <!-- Action Panel -->
-  <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-    <div class="flex gap-2">
-      <button type="button"
-        class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        [disabled]="creating()" (click)="resetForm()">
-        Reset
-      </button>
-
-      <button type="submit"
-        class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
-        [disabled]="creating()">
-        {{ creating() ? 'Creating...' : 'Create Document' }}
-      </button>
-
-      <button type="button" routerLink="/documents/list"
-        class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" [disabled]="creating()">
-        Cancel
-      </button>
-    </div>
-  </div>
-</form>
+      <app-header
+        [draft]="currentDraft"
+        [validationErrors]="validationErrors()"
+        (draftChange)="updateDraft($event)"
+        (documentDateChange)="onDocumentDateChange($event)"></app-header>
+  
+      <!-- Document Item Panel -->
+      <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
+        <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Document Item</h2>
+        <app-document-item-editor
+          [item]="currentDraft.documentItems[0]"
+          [itemTypes]="itemTypes"
+          [validationErrors]="validationErrors()"
+          (itemChange)="updateDocumentItem($event)"/>
+      </div>
+  
+      <app-other-properties
+        [draft]="currentDraft"
+        [validationErrors]="validationErrors()"
+        (draftChange)="updateDraft($event)" />
+  
+  <!  -- Action Panel -->
+      <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
+        <div class="flex gap-2">
+          <button type="button"
+            class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="creating()" (click)="resetForm()">
+            Reset
+          </button>
+    
+          <button type="submit"
+            class="px-6 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+            [disabled]="creating()"> {{ creating() ? 'Creating...' : 'Create Simple' }}
+          </button>
+          
+          <button type="button"
+            class="rounded border border-blue-300 bg-white px-4 py-1 text-blue-700 hover:bg-blue-50"
+            [disabled]="creating()"
+            (click)="convertToStandard()">Convert To Standard
+          </button>
+    
+          <button type="button" routerLink="/documents/list"
+            class="px-4 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50" [disabled]="creating()">
+            Cancel
+          </button>
+        </div>
+      </div>
     </div> <!-- Left side: Document editor END-->
 
     <!-- Right: Documents for selected date START -->
