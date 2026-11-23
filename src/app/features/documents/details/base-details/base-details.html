@@ -1,220 +1,170 @@
-    <!-- Account and Counterparty -->
-    <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
-      <h2 class="mb-2 text-sm font-semibold text-gray-700">Account</h2>
+<!-- Account and Counterparty -->
+<div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+  <h2 class="mb-2 text-sm font-semibold text-gray-700">Account</h2>
 
-      <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-6">
-          <label class="mb-1 block text-xs font-medium">Account</label>
-          <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-            [value]="document().account.accountName" />
-        </div>
-
-        <div class="col-span-6">
-          <label class="mb-1 block text-xs font-medium">Account Currency</label>
-          <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-            [value]="document().account.accountCurrency" />
-        </div>
-      </div>
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Account</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="document().account.accountName" />
     </div>
 
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Account Currency</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="document().account.accountCurrency" />
+    </div>
+  </div>
+</div>
 
-    <!-- Counterparty -->
-    @if (document().counterparty; as counterparty) {
-      <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
-        <h2 class="mb-2 text-sm font-semibold text-gray-700">Counterparty</h2>
-    
-        <div class="grid grid-cols-12 gap-4">
-    
-          <!-- Common fields -->
-          <div class="col-span-6">
-            <label class="mb-1 block text-xs font-medium">Display Name</label>
-            <input readonly tabindex="-1"
-              class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-              [value]="counterparty.displayName" />
-          </div>
-    
-          <div class="col-span-3">
-            <label class="mb-1 block text-xs font-medium">Type</label>
-            <input readonly tabindex="-1"
-              class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-              [value]="counterparty.type" />
-          </div>
-    
-          <div class="col-span-3">
-            <label class="mb-1 block text-xs font-medium">ID</label>
-            <input readonly tabindex="-1"
-              class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-              [value]="counterparty.id" />
-          </div>
-    
-          <!-- Person fields -->
-          @if (counterparty.type === 'PERSON') {
-            <div class="col-span-6">
-              <label class="mb-1 block text-xs font-medium">First Name</label>
-              <input readonly tabindex="-1"
-                class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                [value]="counterparty.firstName" />
-            </div>
-    
-            <div class="col-span-6">
-              <label class="mb-1 block text-xs font-medium">Last Name</label>
-              <input readonly tabindex="-1"
-                class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                [value]="counterparty.lastName" />
-            </div>
-          }
-    
-          <!-- Company fields -->
-          @if (counterparty.type === 'COMPANY') {
-            <div class="col-span-6">
-              <label class="mb-1 block text-xs font-medium">Company Name</label>
-              <input readonly tabindex="-1"
-                class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                [value]="counterparty.companyName" />
-            </div>
-    
-            <div class="col-span-6">
-              <label class="mb-1 block text-xs font-medium">Tax ID</label>
-              <input readonly tabindex="-1"
-                class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                [value]="counterparty.taxId ?? ''" />
-            </div>
-          }
-    
-          <!-- Common bank account -->
-          <div class="col-span-6">
-            <label class="mb-1 block text-xs font-medium">Bank Account Number</label>
-            <input readonly tabindex="-1"
-              class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-              [value]="counterparty.bankAccountNumber ?? ''" />
-          </div>
-    
-          <!-- Address -->
-          @if (counterparty.address; as address) {
-            <div class="col-span-12">
-              <div class="mt-1 border-t border-gray-200 pt-2">
-                <h3 class="mb-2 text-xs font-semibold text-gray-600">Address</h3>
-    
-                <div class="grid grid-cols-12 gap-4">
-                  <div class="col-span-6">
-                    <label class="mb-1 block text-xs font-medium">Street</label>
-                    <input readonly tabindex="-1"
-                      class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                      [value]="address.street" />
-                  </div>
-    
-                  <div class="col-span-2">
-                    <label class="mb-1 block text-xs font-medium">Postcode</label>
-                    <input readonly tabindex="-1"
-                      class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                      [value]="address.postcode" />
-                  </div>
-    
-                  <div class="col-span-2">
-                    <label class="mb-1 block text-xs font-medium">City</label>
-                    <input readonly tabindex="-1"
-                      class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                      [value]="address.city" />
-                  </div>
-    
-                  <div class="col-span-2">
-                    <label class="mb-1 block text-xs font-medium">Country</label>
-                    <input readonly tabindex="-1"
-                      class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-                      [value]="address.country" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-    
-          <!-- Tags -->
-          @if (counterparty.tags?.length) {
-            <div class="col-span-12">
-              <label class="mb-1 block text-xs font-medium">Tags</label>
-              <div class="flex flex-wrap gap-2">
-                @for (tag of counterparty.tags; track tag) {
-                  <span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                    {{ tag }}
-                  </span>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
+
+<!-- Counterparty -->
+@if (document().counterparty; as counterparty) {
+<div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+  <h2 class="mb-2 text-sm font-semibold text-gray-700">Counterparty</h2>
+
+  <div class="grid grid-cols-12 gap-4">
+
+    <!-- Common fields -->
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Display Name</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.displayName" />
+    </div>
+
+    <div class="col-span-3">
+      <label class="mb-1 block text-xs font-medium">Type</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.type" />
+    </div>
+
+    <div class="col-span-3">
+      <label class="mb-1 block text-xs font-medium">ID</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.id" />
+    </div>
+
+    <!-- Person fields -->
+    @if (counterparty.type === 'PERSON') {
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">First Name</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.firstName" />
+    </div>
+
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Last Name</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.lastName" />
+    </div>
     }
 
+    <!-- Company fields -->
+    @if (counterparty.type === 'COMPANY') {
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Company Name</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.companyName" />
+    </div>
 
-    <!-- Payment and Amount -->
-    <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
-      <h2 class="mb-2 text-sm font-semibold text-gray-700">Payment and Amount</h2>
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Tax ID</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.taxId ?? ''" />
+    </div>
+    }
 
-      <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-4">
-          <label class="mb-1 block text-xs font-medium">Payment Method</label>
-          <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-            [value]="document().paymentMethod" />
-        </div>
+    <!-- Common bank account -->
+    <div class="col-span-6">
+      <label class="mb-1 block text-xs font-medium">Bank Account Number</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="counterparty.bankAccountNumber ?? ''" />
+    </div>
 
-        <div class="col-span-3">
-          <label class="mb-1 block text-xs font-medium">Currency</label>
-          <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
-            [value]="document().currencyCode" />
-        </div>
+    <!-- Address -->
+    @if (counterparty.address; as address) {
+    <div class="col-span-12">
+      <div class="mt-1 border-t border-gray-200 pt-2">
+        <h3 class="mb-2 text-xs font-semibold text-gray-600">Address</h3>
 
-        <div class="col-span-5">
-          <label class="mb-1 block text-xs font-medium">Document Amount</label>
-          <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5 text-right font-semibold"
-            [value]="formatAmount(document().documentAmount)" />
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-6">
+            <label class="mb-1 block text-xs font-medium">Street</label>
+            <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+              [value]="address.street" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="mb-1 block text-xs font-medium">Postcode</label>
+            <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+              [value]="address.postcode" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="mb-1 block text-xs font-medium">City</label>
+            <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+              [value]="address.city" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="mb-1 block text-xs font-medium">Country</label>
+            <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+              [value]="address.country" />
+          </div>
         </div>
       </div>
     </div>
+    }
 
-    <!-- Document Items -->
-    <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
-      <div class="mb-2 flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-gray-700">Document Items</h2>
-        <span class="text-xs text-gray-500">Items: {{ document().documentItemsCount }}</span>
+    <!-- Tags -->
+    @if (counterparty.tags?.length) {
+    <div class="col-span-12">
+      <label class="mb-1 block text-xs font-medium">Tags</label>
+      <div class="flex flex-wrap gap-2">
+        @for (tag of counterparty.tags; track tag) {
+        <span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+          {{ tag }}
+        </span>
+        }
       </div>
-    
-      <div class="grid grid-cols-12 gap-2 rounded border border-gray-200 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
-        <div class="col-span-1">Type</div>
-        <div class="col-span-3">Item</div>
-        <div class="col-span-2">Category</div>
-        <div class="col-span-1 text-right">Qty</div>
-        <div class="col-span-2 text-right">Unit Price</div>
-        <div class="col-span-3 text-right">Total</div>
-      </div>
-    
-      @for (documentItem of document().documentItems; track documentItem.documentItemId) {
-        <div class="grid grid-cols-12 gap-2 border-b border-gray-200 px-2 py-2 text-sm last:border-b-0">
-          <div class="col-span-1">
-            {{ documentItem.itemType }}
-          </div>
-         <div class="col-span-3">
-            {{ documentItem.item.itemName }}
-          </div>
-         <div class="col-span-2">
-            {{ documentItem.item.itemCategory.categoryName }}
-          </div>
-         <div class="col-span-1 text-right">
-            {{ formatAmount(documentItem.itemQuantity, 3) }}
-          </div>
-         <div class="col-span-2 text-right">
-            {{ formatAmount(documentItem.itemPrice, 2) }}
-          </div>
-         <div class="col-span-3 text-right font-medium">
-            {{ getItemTotal(documentItem.itemQuantity, documentItem.itemPrice) }}
-          </div>
-         @if (documentItem.itemComment) {
-            <div class="col-span-12 mt-1 text-xs text-gray-600">
-              <span class="font-medium">Comment:</span>
-              {{ documentItem.itemComment }}
-            </div>
-          }
-       </div>
-      } @empty {
-        <div class="px-3 py-4 text-sm italic text-gray-500">No document items.</div>
-      }
     </div>
+    }
+  </div>
+</div>
+}
+
+
+<!-- Payment and Amount -->
+<div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+  <h2 class="mb-2 text-sm font-semibold text-gray-700">Payment and Amount</h2>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-4">
+      <label class="mb-1 block text-xs font-medium">Payment Method</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="document().paymentMethod" />
+    </div>
+
+    <div class="col-span-3">
+      <label class="mb-1 block text-xs font-medium">Currency</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5"
+        [value]="document().currencyCode" />
+    </div>
+
+    <div class="col-span-5">
+      <label class="mb-1 block text-xs font-medium">Document Amount</label>
+      <input readonly tabindex="-1" class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5 text-right font-semibold"
+        [value]="formatAmount(document().documentAmount)" />
+    </div>
+  </div>
+</div>
+
+<!-- Document Items -->
+<div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+  <div class="mb-2 flex items-center justify-between">
+    <h2 class="text-sm font-semibold text-gray-700">Document Items</h2>
+    <span class="text-xs text-gray-500">Items: {{ document().documentItemsCount }}</span>
+  </div>
+
+  <app-document-item-list [documentItems]="document().documentItems" [documentCurrency]="document().currencyCode" />
+</div>

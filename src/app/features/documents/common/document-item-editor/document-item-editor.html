@@ -1,0 +1,71 @@
+<!-- Column headers -->
+<div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded px-2 pt-1">
+  <div class="col-span-2">Type</div>
+  <div class="col-span-4">Item</div>
+  <div class="col-span-1 text-right">Qty</div>
+  <div class="col-span-2 text-right">Unit Price</div>
+  <div class="col-span-3 text-right">Total</div>
+</div>
+
+<!-- Input row -->
+<div class="grid grid-cols-12 gap-2 mt-1">
+
+  <!-- Type -->
+  <div class="col-span-2">
+    <select name="documentItemType" class="w-full border border-gray-300 rounded px-3 py-0.5" required
+      [ngModel]="item().itemType"
+      (ngModelChange)="itemChange.emit({ itemType: $event })">
+      @for (itemType of itemTypes(); track itemType) {
+        <option [ngValue]="itemType">{{ itemType }}</option>
+      }
+    </select>
+    @if (validationErrors().includes('Item type is required')) {
+      <p class="mt-1 text-[11px] text-red-600">Item type is required</p>
+    }
+  </div>
+
+  <!-- Item -->
+  <div class="col-span-4">
+    <app-item-autocomplete [value]="item().item" (itemSelected)="itemChange.emit({ item: $event })" />
+    @if (validationErrors().includes('Item is required')) {
+      <p class="mt-1 text-[11px] text-red-600">Item is required</p>
+    }
+  </div>
+
+  <!-- Quantity -->
+  <div class="col-span-1">
+    <app-number-input inputName="documentItemQuantity" ariaLabel="Document item quantity"
+      [value]="item().itemQuantity ?? null"
+      [fractionDigits]="3"
+      [minimum]="0.001"
+      [required]="true"
+      (valueChange)="itemChange.emit({ itemQuantity: $event ?? 0 })" />
+    @if (validationErrors().includes('Quantity must be greater than 0')) {
+      <p class="mt-1 text-[11px] text-red-600">Quantity must be greater than 0</p>
+    }
+  </div>
+
+  <!-- Price -->
+  <div class="col-span-2">
+    <app-number-input inputName="documentItemPrice" ariaLabel="Document item price"
+      [value]="item().itemPrice ?? null"
+      [fractionDigits]="2"
+      [minimum]="0.01"
+      [required]="true"
+      (valueChange)="itemChange.emit({ itemPrice: $event ?? 0 })" />
+    @if (validationErrors().includes('Price must be greater than 0')) {
+      <p class="mt-1 text-[11px] text-red-600">Price must be greater than 0</p>
+    }
+  </div>
+
+  <!-- Total -->
+  <div class="col-span-3">
+    <input class="w-full border border-gray-300 rounded px-3 py-0.5 bg-gray-100 text-right" readonly [class]="totalClass" [value]="formattedTotal"/>
+  </div>
+</div>
+
+<!-- Item Comment -->
+<div class="mt-3">
+  <label class="block text-xs font-medium mb-1">Item Comment</label>
+  <app-item-comment-autocomplete [value]="item().itemComment" (commentChanged)="itemChange.emit({ itemComment: $event })" />
+</div>

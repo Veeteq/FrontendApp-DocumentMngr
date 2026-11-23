@@ -42,7 +42,6 @@ export class TransferDetails {
   });
 
   formatAmount(value: number | null | undefined, fractionDigits = 2): string {
-    if (value == null) return '';
     return this.numberFormatService.format(value, fractionDigits);
   }
 

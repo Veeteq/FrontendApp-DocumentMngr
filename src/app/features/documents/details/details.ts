@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { finalize } from "rxjs";
+import { distinctUntilChanged, finalize, map } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
 import { ToastService } from "../../common/toast/toast.service";
@@ -9,10 +9,17 @@ import { Document } from "../model/document.model";
 import { DocumentApiService } from "../service/document-api.service";
 import { BaseDetails } from "./base-details/base-details";
 import { TransferDetails } from "./transfer-details/transfer-details";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { DocumentsByDate } from "../documents-by-date/documents-by-date";
 
 @Component({
   selector: 'app-details',
-  imports: [RouterLink, BaseDetails, TransferDetails],
+  imports: [
+    RouterLink, 
+    BaseDetails, 
+    TransferDetails,
+    DocumentsByDate
+  ],
   templateUrl: './details.html',
   styleUrl: './details.css',
 })
@@ -29,15 +36,27 @@ export class Details implements OnInit {
   readonly DocumentType = DocumentType;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) return;
+    this.route.paramMap
+      .pipe(
+        map(params => params.get('id')),
+        distinctUntilChanged(),
+        takeUntilDestroyed()
+      )
+      .subscribe(id => {
+        const documentId = Number(id);
+        if (!id || !Number.isInteger(documentId) || documentId <= 0) {
+          this.documentId.set(null);
+          this.document.set(null);
+          this.error.set('Invalid document ID');
+          return;
+        }
+        this.documentId.set(documentId);
+        this.document.set(null);
+        this.error.set(null);
 
-    const documentId = Number(id);
-    if (!Number.isInteger(documentId) || documentId <= 0) return;
-
-    console.log('Document ID: ', documentId);
-    this.documentId.set(documentId);
-    this.loadDocument();
+        console.log('Document ID: ', documentId);
+        this.loadDocument();
+      })
   }
 
   loadDocument(): void {

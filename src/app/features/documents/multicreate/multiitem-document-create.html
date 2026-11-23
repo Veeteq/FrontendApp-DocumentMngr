@@ -43,65 +43,12 @@
 
       <!-- Accepted document items -->
       @if (currentDraft.documentItems.length > 0) {
-        <!-- Header row -->
-        <div class="grid grid-cols-12 gap-2 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">
-          <div class="col-span-1 text-center">#</div>
-          <div class="col-span-2">Type</div>
-          <div class="col-span-5">Item</div>
-          <div class="col-span-1 text-right">Qty</div>
-          <div class="col-span-1 text-right">Unit Price</div>
-          <div class="col-span-1 text-right">Total</div>
-          <div class="col-span-1 text-center">Actions</div>
-        </div>
-      
-        <!-- Item rows -->
-        <div class="divide-y divide-gray-100">
-      
-          @for (documentItem of currentDraft.documentItems; track $index; let index = $index) {
-            <div class="grid grid-cols-12 items-center gap-2 px-2 py-0.5 text-[12px]">
-              <div class="col-span-1 text-center text-xs text-gray-500">{{ index + 1 }}</div>
-              <div class="col-span-2">{{ documentItem.itemType }}</div>
-              <div class="col-span-5">{{ documentItem.item?.itemName ?? '' }}</div>
-              <div class="col-span-1 text-right">{{ formatAmount(documentItem.itemQuantity, 3) }}</div>
-              <div class="col-span-1 text-right">{{ formatAmount(documentItem.itemPrice, 2) }}</div>
-              <div class="col-span-1 text-right font-semibold" [class]="getItemTotalClass(documentItem)">{{ formatItemTotal(documentItem) }}</div>
-              <div class="col-span-1 flex justify-center gap-1">
-                <!-- Edit Button -->
-                <button type="button" title="Edit item" aria-label="Edit item" class="inline-flex h-6 w-6 items-center justify-center rounded text-blue-500 hover:bg-blue-50 hover:text-blue-700"
-                  (click)="editDocumentItem(index)">
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                  </svg>
-                </button>
-      
-                <!-- Delete Button -->
-                <button type="button" title="Delete item" aria-label="Delete item" class="inline-flex h-6 w-6 items-center justify-center rounded text-red-500 hover:bg-red-50 hover:text-red-700"
-                  (click)="deleteDocumentItem(index)">
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4h8v2" />
-                    <path d="M19 6l-1 14H6L5 6" />
-                    <path d="M10 11v5" />
-                    <path d="M14 11v5" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-      
-            @if (documentItem.itemComment) {
-              <div class="px-2 pb-1 text-[10px] text-gray-500">
-                <span class="font-medium">Comment: </span>{{ documentItem.itemComment }}
-              </div>
-            }
-          }
-        </div>
-
-        <!-- Document items total -->
-        <div class="mt-1 flex items-center justify-end border-t border-gray-200 pt-2">
-          <span class="mr-3 text-xs font-medium text-gray-600">Document Total:</span>
-          <span class="min-w-28 text-right text-xs font-semibold" [class]="getDocumentTotalClass()">{{ formatDocumentTotal() }} {{ currentDraft.currencyCode ?? '' }}</span>
-        </div>        
+        <app-document-item-list
+          [documentItems]="currentDraft.documentItems"
+          [documentCurrency]="currentDraft.currencyCode"
+          [editable]="true"
+          (editItem)="editDocumentItem($event)"
+          (deleteItem)="deleteDocumentItem($event)"/>       
       }
 
       <!-- Add Item editor -->
@@ -112,79 +59,11 @@
             <span class="text-[11px] text-gray-400">  @if (editingItemIndex() == null) { New item } @else { Item #{{ editingItemIndex()! + 1 }} }</span>
           </div>
 
-          <!-- Column headers -->
-          <div class="grid grid-cols-12 gap-2 rounded border border-gray-200 bg-gray-100 px-2 pt-1 text-xs font-semibold text-gray-700">
-            <div class="col-span-2">Type</div>
-            <div class="col-span-4">Item</div>
-            <div class="col-span-1 text-right">Qty</div>
-            <div class="col-span-2 text-right">Unit Price</div>
-            <div class="col-span-3 text-right">Total</div>
-          </div>
-
-          <!-- Input row -->
-          <div class="mt-1 grid grid-cols-12 gap-2">
-
-            <!-- Type -->
-            <div class="col-span-2">
-              <select name="newDocumentItemType" class="w-full rounded border border-gray-300 px-3 py-0.5" required
-                [ngModel]="item.itemType"
-                (ngModelChange)="updateDocumentItemDraft({ itemType: $event })">
-                @for (itemType of itemTypes; track itemType) {
-                  <option [ngValue]="itemType">{{ itemType }}</option>
-                }
-              </select>
-            </div>
-
-            <!-- Item -->
-            <div class="col-span-4">
-              <app-item-autocomplete [value]="item.item" (itemSelected)="updateDocumentItemDraft({ item: $event })"></app-item-autocomplete>
-              @if (itemValidationErrors().includes('Item is required')) {
-                <p class="mt-1 text-[11px] text-red-600">Item is required</p>
-              }
-            </div>
-
-            <!-- Quantity -->
-            <div class="col-span-1">
-              <app-number-input
-                inputName="newDocumentItemQuantity"
-                ariaLabel="Document item quantity"
-                [value]="item.itemQuantity ?? null"
-                [fractionDigits]="3"
-                [minimum]="0.001"
-                [required]="true"
-                (valueChange)="updateDocumentItemDraft({itemQuantity: $event ?? 0})">
-              </app-number-input>
-            </div>
-
-            <!-- Price -->
-            <div class="col-span-2">
-              <app-number-input
-                inputName="newDocumentItemPrice"
-                ariaLabel="Document item price"
-                [value]="item.itemPrice ?? null"
-                [fractionDigits]="2"
-                [minimum]="0.01"
-                [required]="true"
-                (valueChange)="updateDocumentItemDraft({itemPrice: $event ?? 0})">
-              </app-number-input>
-              @if (itemValidationErrors().includes('Price must be greater than 0')) {
-                <p class="mt-1 text-[11px] text-red-600">Price must be greater than 0</p>
-              }
-            </div>
-
-            <!-- Total -->
-            <div class="col-span-3">
-              <input class="w-full rounded border border-gray-300 bg-gray-100 px-3 py-0.5 text-right" readonly
-                [value]="formatItemTotal(item)" />
-            </div>
-          </div>
-
-          <!-- Comment -->
-          <div class="mt-3">
-            <label class="mb-1 block text-xs font-medium">Item Comment</label>
-            <app-item-comment-autocomplete
-            (commentChanged)="updateDocumentItemDraft({itemComment: $event})"/>
-          </div>
+          <app-document-item-editor
+            [item]="item"
+            [itemTypes]="itemTypes"
+            [validationErrors]="itemValidationErrors()"
+            (itemChange)="updateDocumentItemDraft($event)"/>
 
           <!-- Editor actions -->
           <div class="mt-3 flex justify-end gap-2">
@@ -199,7 +78,7 @@
     <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
       <div class="flex gap-2">
         <button type="button" class="rounded border border-gray-300 bg-white px-4 py-1 hover:bg-gray-50" [disabled]="creating()" (click)="resetForm()">Reset</button>
-        <button type="submit" class="rounded bg-blue-600 px-6 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300" 
+        <button type="submit" class="rounded bg-blue-600 px-6 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
         [disabled]="creating() || currentDraft.documentItems.length === 0">
         {{ creating() ? 'Creating...' : 'Create Document' }}
         </button>
@@ -212,31 +91,7 @@
 
     <!-- Right: Documents for selected date START -->
     <aside class="col-span-4">
-      <div class="bg-white rounded-lg shadow p-3 space-y-2">
-
-        <!-- Document Header Panel -->
-        <div class="bg-white border border-gray-200 rounded-md shadow-sm p-2 mt-2">
-
-          <!-- Header -->
-          <h2 class="text-sm font-semibold underline text-gray-700 mb-2">Documents for:</h2>         
-          <div class="mt-0.5 text-xs text-gray-500">{{ currentDraft.documentDate }}</div>
-
-          <!-- Empty state -->
-          <div class="flex min-h-40 items-center justify-center px-4 py-6 text-center">
-            <div>
-              <svg class="mx-auto mb-2 h-7 w-7 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5A3.375 3.375 0 0 0 10.125 2.25H6.75A2.25 2.25 0 0 0 4.5 4.5v15a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-5.25Z" />
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M13.5 2.25V6a2.25 2.25 0 0 0 2.25 2.25h3.75" />
-              </svg>
-    
-              <p class="text-sm text-gray-500">No documents to display</p>
-              <p class="mt-1 text-xs text-gray-400">Documents for the selected date will appear here.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-documents-by-date [documentDate]="currentDraft.documentDate" />
     </aside> <!-- Right: Documents for selected date END -->
   </div> <!-- 12-column page definition END -->
 }

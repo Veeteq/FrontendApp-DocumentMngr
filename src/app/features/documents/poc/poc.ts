@@ -3,8 +3,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { getApplicationErrorMessage } from '../../../core/auth/http-error.interceptor';
-import { CreateDocumentItemRequest } from '../../../core/dto/create-document-item-request.model';
-import { CreateDocumentRequest } from '../../../core/dto/create-document-request.model';
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { AccountAutocompleteComponent } from '../../autocomplete/account/account-autocomplete';
 import { CounterpartyAutocompleteComponent } from '../../autocomplete/counterparty/counterparty-autocomplete';
@@ -24,6 +22,9 @@ import { Item } from '../model/item.model';
 import { PaymentMethod } from '../model/payment-method.model';
 import { DocumentApiService } from '../service/document-api.service';
 import { DocumentRepositoryService } from '../service/document-repository.service';
+import { DocumentRequestMapperService } from '../service/document-request-mapper.service';
+import { DocumentValidationService } from '../service/document-validation.service';
+import { extractDocumentId } from '../service/document.utils';
 
 @Component({
   selector: 'app-poc',
@@ -46,6 +47,8 @@ export class Poc implements OnInit {
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly documentRequestMapper = inject(DocumentRequestMapperService);
+  private readonly documentValidationService = inject(DocumentValidationService);
 
   // Temporary reference data
   readonly documentTypes = [
@@ -173,7 +176,7 @@ export class Poc implements OnInit {
     if (!document) return;
 
     //Error handling
-    const errors = this.validateDocument();
+    const errors = this.documentValidationService.validateDocument(document);
     this.validationErrors.set(errors);
     if (errors.length > 0) {
       this.toastService.error('Please correct the validation errors');
@@ -182,7 +185,7 @@ export class Poc implements OnInit {
     }
 
     // Convert to request DTO
-    const request = this.toCreateDocumentRequest(document);
+    const request = this.documentRequestMapper.toCreateDocumentRequest(document);
 
     //Send request to API
     this.creating.set(true);
@@ -195,7 +198,7 @@ export class Poc implements OnInit {
           console.log('Document created at: ' + location);
           this.toastService.success('Document created successfully');
 
-          const documentId = this.extractDocumentId(location);
+          const documentId = extractDocumentId(location);
           if (documentId != null) {
             this.router.navigate(['/documents/details', documentId]);
             return;
@@ -269,97 +272,10 @@ export class Poc implements OnInit {
     });
   }
 
-  private validateDocument(): string[] {
-    const errors: string[] = [];
-    const document = this.repository.draft();
-    if (!document) {
-      errors.push('Document is empty');
-      return errors;
-    }
-    if (!document.account) errors.push('Account is required');
-    if (!document.documentType) errors.push('Document type is required');
-    if (!document.documentName?.trim()) errors.push('Document name is required');
-    if (!document.documentDate) errors.push('Document date is required');
-
-    // Counterparty
-    if ((document.documentType === DocumentType.BILL || document.documentType === DocumentType.INVOICE) && !document.counterparty)
-      errors.push('Counterparty is required');
-
-    // Invoice
-    if (document.documentType === DocumentType.INVOICE && !document.invoiceNumber?.trim()) errors.push('Invoice number is required');
-
-    // Payment
-    if (!document.paymentMethod) errors.push('Payment method is required');
-    if (!document.currencyCode) errors.push('Currency is required');
-    if (document.exchangeRate == null || document.exchangeRate <= 0) errors.push('Exchange rate must be greater than zero');
-
-    // Items
-    const items = document.documentItems;
-    if (items.length === 0) errors.push('At least one document item is required');
-    items.forEach((item, index) => {
-      const itemNo = index + 1;
-      if (!item.itemType) errors.push(`Item #${itemNo}: type is required`);
-      if (!item.item) errors.push(`Item #${itemNo}: item is required`);
-      if (item.itemQuantity == null || item.itemQuantity <= 0) errors.push(`Item #${itemNo}: quantity must be greater than 0`);
-      if (item.itemPrice == null || item.itemPrice <= 0) errors.push(`Item #${itemNo}: price must be greater than 0`);
-    });
-
-    return errors;
-  }
-
-  private toCreateDocumentRequest(document: DocumentDraft): CreateDocumentRequest {
-    if (!document.account) throw new Error('Account is required');
-    if (!document.documentType) throw new Error('Document type is required');
-    if (!document.paymentMethod) throw new Error('Payment method is required');
-    if (!document.currencyCode) throw new Error('Currency is required');
-    if (document.exchangeRate == null) throw new Error('Exchange rate is required');
-
-    return {
-      documentDate: document.documentDate,
-      documentType: document.documentType,
-      documentName: this.emptyToUndefined(document.documentName),
-      documentDescription: this.emptyToUndefined(document.documentComment),
-      invoiceNumber: this.emptyToUndefined(document.invoiceNumber),
-      accountId: document.account.accountId,
-      counterpartyId: document.counterparty?.id,
-      payment: {
-        paymentMethod: document.paymentMethod,
-        currencyCode: document.currencyCode,
-        exchangeRate: document.exchangeRate,
-      },
-      documentItems: document.documentItems.map((item, index) => this.toCreateDocumentItemRequest(item, index)),
-    };
-  }
-
-  private toCreateDocumentItemRequest(item: DocumentItemDraft, index: number): CreateDocumentItemRequest {
-    if (!item.itemType) throw new Error(`Item #${index + 1}: type is required`);
-    if (!item.item) throw new Error(`Item #${index + 1}: item is required`);
-    if (item.itemQuantity == null || item.itemQuantity <= 0) throw new Error(`Item #${index + 1}: quantity must be greater than 0`);
-    if (item.itemPrice == null || item.itemPrice <= 0) throw new Error(`Item #${index + 1}: price must be greater than 0`);
-    return {
-      itemType: item.itemType,
-      itemId: item.item.itemId,
-      itemQuantity: item.itemQuantity,
-      itemPrice: item.itemPrice,
-      itemDescription: this.emptyToUndefined(item.itemComment),
-    };
-  }
-
-  private emptyToUndefined(value?: string): string | undefined {
-    if (!value) return undefined;
-    return value?.trim() ? value.trim() : undefined;
-  }
-
   private handleHttpError(error: unknown, userMessage: string) {
     const errMsg = getApplicationErrorMessage(error, userMessage);
     this.toastService.error(errMsg);
     console.error(userMessage, error);
   }
 
-  private extractDocumentId(location: string | null): number | null {
-    if (!location) return null;
-    const lastSegment = location.split('/').filter(Boolean).pop();
-    const documentId = Number(lastSegment);
-    return Number.isInteger(documentId) && documentId > 0 ? documentId : null;
-  }
 }
