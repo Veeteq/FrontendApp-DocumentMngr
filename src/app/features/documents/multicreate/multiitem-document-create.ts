@@ -52,6 +52,9 @@ export class MultiItemDocumentCreate implements OnInit {
   readonly creating = signal(false);
 
   ngOnInit(): void {
+    const requested = this.repository.checkRequestConversion();
+    if (requested && this.repository.draft()) return; //DO NOT init document if document is converted from simple to standard
+
     this.repository.initDocument({});
   }
 

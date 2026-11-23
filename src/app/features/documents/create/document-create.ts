@@ -142,6 +142,22 @@ export class DocumentCreate implements OnInit {
       });
   }
 
+  convertToStandard() {
+    const document = this.draft();
+    if (!document) return;
+
+    const errors = this.documentValidationService.validateDocument(document);
+
+    if (errors.length > 0) {
+      this.validationErrors.set(errors);
+      this.toastService.error('Complete the current document item before switching');
+      return;
+    }
+
+    this.repository.requestConverstion();
+    this.router.navigate(['/documents/standard',]);
+  }
+
   resetForm() {
     this.validationErrors.set([]);
     this.repository.initDocument({});
