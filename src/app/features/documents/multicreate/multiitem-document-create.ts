@@ -9,7 +9,7 @@ import { DocumentItemEditor } from "../common/document-item-editor/document-item
 import { DocumentItemList } from "../common/document-item-list/document-item-list";
 import { Header } from "../common/header/header";
 import { OtherProperties } from "../common/other-properties/other-properties";
-import { DocumentsByDate } from "../documents-by-date/documents-by-date";
+import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 import { DocumentDraft } from "../model/document-draft.model";
 import { DocumentItemDraft } from "../model/document-item-draft.model";
 import { ItemType } from "../model/item-type.model";
