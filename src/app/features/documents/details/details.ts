@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { distinctUntilChanged, finalize, map } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
@@ -28,6 +28,7 @@ export class Details implements OnInit {
   private readonly documentApi = inject(DocumentApiService);
   private readonly toastService = inject(ToastService);
   private readonly numberFormatService = inject(NumberFormatService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly document = signal<Document | null>(null);
   readonly loading = signal(false);
@@ -40,7 +41,7 @@ export class Details implements OnInit {
       .pipe(
         map(params => params.get('id')),
         distinctUntilChanged(),
-        takeUntilDestroyed()
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(id => {
         const documentId = Number(id);
