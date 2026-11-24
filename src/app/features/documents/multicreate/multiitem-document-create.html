@@ -79,10 +79,10 @@
       <div class="flex gap-2">
         <button type="button" class="rounded border border-gray-300 bg-white px-4 py-1 hover:bg-gray-50" [disabled]="creating()" (click)="resetForm()">Reset</button>
         <button type="submit" class="rounded bg-blue-600 px-6 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-        [disabled]="creating() || currentDraft.documentItems.length === 0">
+        [disabled]="creating() || documentItemDraft() != null ||currentDraft.documentItems.length === 0">
         {{ creating() ? 'Creating...' : 'Create Document' }}
         </button>
-        <button type="button" routerLink="/documents/list" class="rounded border border-gray-300 bg-white px-4 py-1 hover:bg-gray-50" [disabled]="creating()">Cancel</button>
+        <button type="button" class="rounded border border-gray-300 bg-white px-4 py-1 hover:bg-gray-50" [disabled]="creating()" (click)="cancel()">Cancel</button>
       </div>
     </div>
   </form>

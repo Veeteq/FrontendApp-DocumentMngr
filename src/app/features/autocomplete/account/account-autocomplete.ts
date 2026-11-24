@@ -63,7 +63,7 @@ export class AccountAutocompleteComponent {
           return this.accountApi.searchAccounts(trimmed)
           .pipe(
             catchError(() => {
-              this.error.set('Failed to load items');
+              this.error.set('Failed to load accounts');
               return of([]);
             }),
             finalize(() => this.loading.set(false)),

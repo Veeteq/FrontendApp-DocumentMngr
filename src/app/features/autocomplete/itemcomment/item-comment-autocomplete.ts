@@ -63,7 +63,7 @@ export class ItemCommentAutocompleteComponent {
           return this.documentApi.getMetadata("documentItemComment", trimmed)
             .pipe(
               catchError(() => {
-                this.error.set('Failed to load items');
+                this.error.set('Failed to load data');
                 return of([]);
               }),
               finalize(() => this.loading.set(false)),

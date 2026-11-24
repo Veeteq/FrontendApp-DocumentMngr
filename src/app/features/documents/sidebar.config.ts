@@ -10,13 +10,13 @@ export interface SidebarItem {
 export const DOCUMENTS_SIDEBAR: SidebarItem[] = [
   {
     label: 'All Documents',
-    icon: '📄',
+    icon: '📋',
     route: 'list',
     exact: true
   },
   {
     label: 'Simple document',
-    icon: '📝',
+    icon: '📄',
     route: 'simple'
   },
   {
@@ -26,12 +26,12 @@ export const DOCUMENTS_SIDEBAR: SidebarItem[] = [
   },
   {
     label: 'New Document',
-    icon: '⬆️',
+    icon: '💱',
     route: 'poc'
   },
   {
     label: 'Money Transfer',
-    icon: '⬆️',
+    icon: '↔️',
     route: 'transfer'
   }
 ];
