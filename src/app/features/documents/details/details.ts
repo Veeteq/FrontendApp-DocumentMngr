@@ -1,16 +1,18 @@
 import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { distinctUntilChanged, finalize, map } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
 import { ToastService } from "../../common/toast/toast.service";
+import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 import { DocumentType } from "../model/document-type.model";
 import { Document } from "../model/document.model";
 import { DocumentApiService } from "../service/document-api.service";
+import { DocumentRepositoryService } from "../service/document-repository.service";
+import { DocumentRequestMapperService } from "../service/document-request-mapper.service";
 import { BaseDetails } from "./base-details/base-details";
 import { TransferDetails } from "./transfer-details/transfer-details";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 
 @Component({
   selector: 'app-details',
@@ -28,7 +30,10 @@ export class Details implements OnInit {
   private readonly documentApi = inject(DocumentApiService);
   private readonly toastService = inject(ToastService);
   private readonly numberFormatService = inject(NumberFormatService);
+  private readonly repository = inject(DocumentRepositoryService);
+  private readonly documentRequestMapper = inject(DocumentRequestMapperService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   readonly document = signal<Document | null>(null);
   readonly loading = signal(false);
@@ -82,6 +87,16 @@ export class Details implements OnInit {
           console.error('Unable to load document', error);
         },
       });
+  }
+
+  cloneDocument() {
+    const document = this.document();
+    if (!document || this.isMoneyTransfer(document)) return;
+
+    const clone = this.documentRequestMapper.toDocumentDraft(document);
+    
+    this.repository.prepareDraftDocument(clone);
+    this.router.navigate(['/documents/standard']);
   }
 
   formatDateTime(value: string | null | undefined): string {

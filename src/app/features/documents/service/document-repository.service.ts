@@ -7,14 +7,13 @@ import { Currency } from "../model/currency.model";
   providedIn: 'root'
 })
 export class DocumentRepositoryService {
-
   /** Internal signal holding the draft document */
   private readonly _draft = signal<DocumentDraft | null>(null);
-  private readonly _conversionRequested = signal(false);
+  private readonly _draftDocumentReady = signal(false);
 
    /** Public read-only access to the draft */
   readonly draft = this._draft.asReadonly();
-  readonly conversionRequested = this._conversionRequested.asReadonly();
+  readonly draftDocumentReady = this._draftDocumentReady.asReadonly();
 
   /**
    * Initialize a new empty document draft.
@@ -63,15 +62,14 @@ export class DocumentRepositoryService {
     this._draft.set(null);
   }
 
-  requestConverstion() {
-    console.log("requestConverstion");
-    this._conversionRequested.set(true);
+  prepareDraftDocument(document: DocumentDraft) {
+    this._draft.set(document);
+    this._draftDocumentReady.set(true);
   }
 
-  checkRequestConversion(): boolean {
-    const requested = this._conversionRequested();
-    this._conversionRequested.set(false);
+  consumeDocumentDraft() {
+    const requested = this._draftDocumentReady();
+    this._draftDocumentReady.set(false);
     return requested;
   }
-
 }

@@ -6,9 +6,9 @@ import { getApplicationErrorMessage } from '../../../core/auth/http-error.interc
 import { NumberFormatService } from '../../../core/locale/number-format.service';
 import { ToastService } from '../../common/toast/toast.service';
 import { DocumentItemEditor } from '../common/document-item-editor/document-item-editor';
+import { DocumentsByDate } from '../common/documents-by-date/documents-by-date';
 import { Header } from '../common/header/header';
 import { OtherProperties } from '../common/other-properties/other-properties';
-import { DocumentsByDate } from '../common/documents-by-date/documents-by-date';
 import { DocumentDraft } from '../model/document-draft.model';
 import { DocumentItemDraft } from '../model/document-item-draft.model';
 import { ItemType } from '../model/item-type.model';
@@ -154,7 +154,7 @@ export class DocumentCreate implements OnInit {
       return;
     }
 
-    this.repository.requestConverstion();
+    this.repository.prepareDraftDocument(document);
     this.router.navigate(['/documents/standard',]);
   }
 
