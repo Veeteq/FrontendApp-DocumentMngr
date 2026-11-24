@@ -1,15 +1,15 @@
 import { Component, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
 import { ToastService } from "../../common/toast/toast.service";
 import { DocumentItemEditor } from "../common/document-item-editor/document-item-editor";
 import { DocumentItemList } from "../common/document-item-list/document-item-list";
+import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 import { Header } from "../common/header/header";
 import { OtherProperties } from "../common/other-properties/other-properties";
-import { DocumentsByDate } from "../common/documents-by-date/documents-by-date";
 import { DocumentDraft } from "../model/document-draft.model";
 import { DocumentItemDraft } from "../model/document-item-draft.model";
 import { ItemType } from "../model/item-type.model";
@@ -25,10 +25,10 @@ import { extractDocumentId } from "../service/document.utils";
     FormsModule,
     Header,
     DocumentsByDate,
+    DocumentsByDate,
     OtherProperties,
     DocumentItemEditor,
-    DocumentItemList,
-    RouterLink
+    DocumentItemList
   ],
   templateUrl: './multiitem-document-create.html',
   styleUrl: './multiitem-document-create.css',
@@ -256,6 +256,5 @@ export class MultiItemDocumentCreate implements OnInit {
     this.toastService.error(message);
     console.error(fallback, error);
   }
-
 
 }

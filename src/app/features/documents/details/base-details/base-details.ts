@@ -1,7 +1,6 @@
 import { Component, inject, input } from "@angular/core";
 import { NumberFormatService } from "../../../../core/locale/number-format.service";
 import { DocumentItemList } from "../../common/document-item-list/document-item-list";
-import { DocumentItem } from "../../model/document-item.model";
 import { Document } from "../../model/document.model";
 
 @Component({
