@@ -29,7 +29,7 @@
         </div>
 
         @if (!documentItemDraft()) {
-          <button type="button" class="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+          <button type="button" class="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"          
           (click)="initDocumentItem()">
           + Add Item
           </button>
@@ -43,6 +43,7 @@
 
       <!-- Accepted document items -->
       @if (currentDraft.documentItems.length > 0) {
+
         <app-document-item-list
           [documentItems]="currentDraft.documentItems"
           [documentCurrency]="currentDraft.currencyCode"
@@ -78,7 +79,7 @@
     <div class="mt-2 rounded-md border border-gray-200 bg-white p-2 shadow-sm">
       <div class="flex gap-2">
         <button type="button" class="rounded border border-gray-300 bg-white px-4 py-1 hover:bg-gray-50" [disabled]="creating()" (click)="resetForm()">Reset</button>
-        <button type="submit" class="rounded bg-blue-600 px-6 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+        <button type="submit" class="rounded bg-blue-600 px-6 py-1 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300" 
         [disabled]="creating() || documentItemDraft() != null ||currentDraft.documentItems.length === 0">
         {{ creating() ? 'Creating...' : 'Create Document' }}
         </button>
