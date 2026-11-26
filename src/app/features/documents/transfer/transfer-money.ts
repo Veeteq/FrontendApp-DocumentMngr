@@ -14,8 +14,9 @@ import { DocumentType } from "../model/document-type.model";
 import { MoneyTransferDraft, ProvisionAt } from '../model/money-transfer-draft.model';
 import { PaymentMethod } from "../model/payment-method.model";
 import { DocumentApiService } from "../service/document-api.service";
-import { TransferRepositoryService } from "../service/money-transfer-repository.service";
+import { DocumentValidationService } from "../service/document-validation.service";
 import { extractDocumentId } from "../service/document.utils";
+import { TransferRepositoryService } from "../service/money-transfer-repository.service";
 
 @Component({
   selector: 'app-money-transfer',
@@ -28,6 +29,7 @@ export class TransferMoney implements OnInit {
   private readonly documentApi = inject(DocumentApiService);
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly toastService = inject(ToastService);
+  private readonly documentValidationService = inject(DocumentValidationService);
   private readonly router = inject(Router);
 
   // Temporary reference data
@@ -110,7 +112,7 @@ export class TransferMoney implements OnInit {
     if (!transfer) return;
 
     //Error handling
-    const errors = this.validateTransfer();
+    const errors = this.documentValidationService.validateTransfer(transfer);
     this.validationErrors.set(errors);
     if (errors.length > 0) {
       this.toastService.error('Validation errors: ' + errors.join(', '));
@@ -150,41 +152,6 @@ export class TransferMoney implements OnInit {
     this.validationErrors.set([]);
 
     this.repository.initTransfer({});
-  }
-
-  validateTransfer(): string[] {
-    const errors: string[] = [];
-
-    const transfer = this.draft();
-
-    if (!transfer) {
-      errors.push('Transfer is not initialized');
-      return errors;
-    }
-
-    // Transaction Date
-    if (!transfer.transferDate) errors.push('Transaction date is required');
-    if (!transfer.paymentMethod) errors.push('Payment method is required');
-
-    // Accounts
-    if (!transfer.sourceAccount) errors.push('Source account is required');
-    if (!transfer.targetAccount) errors.push('Target account is required');
-    if (transfer.sourceAccount?.accountId && transfer.targetAccount?.accountId && transfer.sourceAccount.accountId === transfer.targetAccount.accountId) errors.push('Source and target account must be different');
-
-    // Amounts
-    if (!Number.isFinite(transfer.transferAmount) || transfer.transferAmount <= 0) errors.push('Transfer amount must be greater than 0');
-    if (!Number.isFinite(transfer.exchangeRate) || transfer.exchangeRate <= 0) errors.push('Exchange rate must be greater than 0');
-    if (transfer.provisionAmount != null && !Number.isFinite(transfer.provisionAmount)) errors.push('Provision amount must be a valid number');
-    if (transfer.provisionAmount != null && transfer.provisionAmount < 0) errors.push('Provision amount cannot be negative');
-    if (transfer.provisionAmount != null && transfer.provisionAmount > 0 && !transfer.provisionAt) errors.push('Provision location is required when provision amount is entered');
-
-    // Currency consistency
-    const sourceCurrency = transfer.sourceAccount?.accountCurrency;
-    const targetCurrency = transfer.targetAccount?.accountCurrency;
-    if (sourceCurrency && targetCurrency && sourceCurrency === targetCurrency && transfer.exchangeRate !== 1) errors.push('Exchange rate must be 1 when both accounts use the same currency');
-    if (sourceCurrency && targetCurrency && sourceCurrency !== targetCurrency && transfer.exchangeRate === 1) errors.push('Exchange rate should not be 1 when accounts use different currencies');
-
-    return errors;
   }
 
   private toTransferRequest(document: MoneyTransferDraft): TransferRequest {
