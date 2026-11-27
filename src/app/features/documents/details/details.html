@@ -90,12 +90,10 @@
           <button type="button" class="rounded border border-gray-300 bg-white px-4 py-1 hover:bg-gray-50" routerLink="/documents/list">
             Back to list
           </button>
-          
-          @if (!isMoneyTransfer(currentDocument)) {
-            <button type="button" class="rounded border border-blue-300 bg-white px-4 py-1 text-blue-700 hover:bg-blue-50" (click)="cloneDocument()">
-              Clone document              
-            </button>
-          }
+                    
+          <button type="button" class="rounded border border-blue-300 bg-white px-4 py-1 text-blue-700 hover:bg-blue-50" (click)="cloneDocument()">
+            Clone document              
+          </button>          
         </div>
       </div>
     }

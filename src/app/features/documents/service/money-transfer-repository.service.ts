@@ -1,11 +1,15 @@
 import { Injectable, signal } from '@angular/core';
-import { MoneyTransferDraft } from '../model/money-transfer-draft.model';
+import { MoneyTransferDraft, ProvisionAt } from '../model/money-transfer-draft.model';
+import { Account } from '../model/account.model';
+import { PaymentMethod } from '../model/payment-method.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TransferRepositoryService {
   private readonly _draft = signal<MoneyTransferDraft | null>(null);
+  private readonly _draftTransferReady = signal(false);
+
   readonly draft = this._draft.asReadonly();
 
   initTransfer(base: Partial<MoneyTransferDraft>): void {
@@ -25,6 +29,11 @@ export class TransferRepositoryService {
     this._draft.set(transfer);
   }
 
+  prepareDraftTransfer(transfer: Partial<MoneyTransferDraft>) {
+    this.initTransfer(transfer);
+    this._draftTransferReady.set(true);
+  }
+
   updateDraft(patch: Partial<MoneyTransferDraft>): void {
     const current = this.draft();
 
@@ -38,5 +47,11 @@ export class TransferRepositoryService {
 
   reset(): void {
     this.initTransfer({});
+  }
+
+  consumeTransferDraft(): boolean {
+    const requested = this._draftTransferReady();
+    this._draftTransferReady.set(false);
+    return requested;
   }
 }

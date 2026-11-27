@@ -47,6 +47,9 @@ export class TransferMoney implements OnInit {
   readonly validationErrors = signal<string[]>([]);
 
   ngOnInit(): void {
+    const requested = this.repository.consumeTransferDraft();
+    if (requested && this.repository.draft()) return; //DO NOT init transfer if transfer is copied from another one
+
     this.repository.initTransfer({});
   }
 
@@ -85,7 +88,7 @@ export class TransferMoney implements OnInit {
     const exchangedAmount = this.getExchangedAmount();
     const exchangeRate = transfer.exchangeRate ?? 0;
     if (!Number.isFinite(exchangeRate) || exchangeRate <= 0) return 0;
-    
+
     let result = exchangedAmount / exchangeRate;
 
     if (transfer.provisionAt === ProvisionAt.TARGET) result -= transfer.provisionAmount ?? 0;
