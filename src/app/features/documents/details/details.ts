@@ -13,6 +13,7 @@ import { DocumentRepositoryService } from "../service/document-repository.servic
 import { DocumentRequestMapperService } from "../service/document-request-mapper.service";
 import { BaseDetails } from "./base-details/base-details";
 import { TransferDetails } from "./transfer-details/transfer-details";
+import { TransferRepositoryService } from "../service/money-transfer-repository.service";
 
 @Component({
   selector: 'app-details',
@@ -32,6 +33,7 @@ export class Details implements OnInit {
   private readonly numberFormatService = inject(NumberFormatService);
   private readonly repository = inject(DocumentRepositoryService);
   private readonly documentRequestMapper = inject(DocumentRequestMapperService);
+  private readonly transferRepository = inject(TransferRepositoryService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
 
@@ -91,7 +93,12 @@ export class Details implements OnInit {
 
   cloneDocument() {
     const document = this.document();
-    if (!document || this.isMoneyTransfer(document)) return;
+    if (!document) return;
+
+    if (this.isMoneyTransfer(document)) {
+      this.cloneTransferDocument(document);
+      return;
+    }
 
     const clone = this.documentRequestMapper.toDocumentDraft(document);
     
@@ -114,5 +121,23 @@ export class Details implements OnInit {
 
   isMoneyTransfer(document: Document): boolean {
     return document.documentType.toUpperCase() === DocumentType.TRANSFER.toUpperCase();
+  }
+
+  private cloneTransferDocument(document: Document) {
+    const transfer = document.transferDetails;
+    if (!transfer) return;
+
+    this.transferRepository.prepareDraftTransfer({
+      sourceAccount: transfer.sourceAccount,
+      targetAccount: transfer.targetAccount,
+      transferAmount: transfer.sourceAmount,
+      paymentMethod: document.paymentMethod,
+      exchangeRate: document.exchangeRate,
+      provisionAmount: transfer.provisionAmount ?? null,
+      provisionAt: transfer.provisionAt ?? null,
+      comment: document.documentComment ?? '',
+    });
+
+    this.router.navigate(['/documents/transfer']);
   }
 }
