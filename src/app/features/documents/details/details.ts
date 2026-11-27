@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { distinctUntilChanged, finalize, map } from "rxjs";
+import { catchError, distinctUntilChanged, EMPTY, finalize, map, startWith, Subject, switchMap, tap } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
 import { NumberFormatService } from "../../../core/locale/number-format.service";
 import { ToastService } from "../../common/toast/toast.service";
@@ -18,8 +18,8 @@ import { TransferRepositoryService } from "../service/money-transfer-repository.
 @Component({
   selector: 'app-details',
   imports: [
-    RouterLink, 
-    BaseDetails, 
+    RouterLink,
+    BaseDetails,
     TransferDetails,
     DocumentsByDate
   ],
@@ -36,6 +36,7 @@ export class Details implements OnInit {
   private readonly transferRepository = inject(TransferRepositoryService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly retry$ = new Subject<void>();
 
   readonly document = signal<Document | null>(null);
   readonly loading = signal(false);
@@ -46,62 +47,50 @@ export class Details implements OnInit {
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
-        map(params => params.get('id')),
+        map(params => {
+          const id = params.get('id');
+          const documentId = Number(id);
+          return id && Number.isInteger(documentId) && documentId > 0 ? documentId : null;
+        }),
         distinctUntilChanged(),
+        tap(documentId => {
+          this.documentId.set(documentId);
+          this.document.set(null);
+          this.error.set(null);
+        }),
+        switchMap(documentId => {
+          if (documentId == null) {
+            this.loading.set(false);
+            this.error.set('Invalid document ID');
+            return EMPTY;
+          }
+          return this.retry$.pipe(
+            startWith(undefined),
+            switchMap(() => this.fetchDocument(documentId))
+          );
+        }),
+
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(id => {
-        const documentId = Number(id);
-        if (!id || !Number.isInteger(documentId) || documentId <= 0) {
-          this.documentId.set(null);
-          this.document.set(null);
-          this.error.set('Invalid document ID');
-          return;
-        }
-        this.documentId.set(documentId);
-        this.document.set(null);
-        this.error.set(null);
-
-        console.log('Document ID: ', documentId);
-        this.loadDocument();
-      })
+      .subscribe();
   }
 
   loadDocument(): void {
-    const documentId = this.documentId();
-    if (documentId == null) return;
-
-    this.loading.set(true);
-
-    this.documentApi
-      .getDocument(documentId)
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (document) => {
-          this.document.set(document);
-          this.error.set(null);
-        },
-        error: (error) => {
-          const message = getApplicationErrorMessage(error, 'Unable to load document.');
-          this.error.set(message);
-          this.toastService.error(message);
-
-          console.error('Unable to load document', error);
-        },
-      });
+    if (this.documentId() == null) return;
+    this.retry$.next();
   }
 
   cloneDocument() {
     const document = this.document();
     if (!document) return;
 
-    if (this.isMoneyTransfer(document)) {
+    if (this.isTransfer(document)) {
       this.cloneTransferDocument(document);
       return;
     }
 
     const clone = this.documentRequestMapper.toDocumentDraft(document);
-    
+
     this.repository.prepareDraftDocument(clone);
     this.router.navigate(['/documents/standard']);
   }
@@ -119,7 +108,7 @@ export class Details implements OnInit {
     }).format(date);
   }
 
-  isMoneyTransfer(document: Document): boolean {
+  isTransfer(document: Document): boolean {
     return document.documentType.toUpperCase() === DocumentType.TRANSFER.toUpperCase();
   }
 
@@ -140,4 +129,28 @@ export class Details implements OnInit {
 
     this.router.navigate(['/documents/transfer']);
   }
+
+  private fetchDocument(documentId: number) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.documentApi
+      .getDocument(documentId)
+      .pipe(
+        tap(document => {
+          this.document.set(document);
+        }),
+        catchError((error: unknown) => {
+          const message = getApplicationErrorMessage(error, 'Unable to load document.');
+
+          this.error.set(message);
+          this.toastService.error(message);
+
+          console.error('Unable to load document', error);
+          return EMPTY;
+        }),
+        finalize(() => this.loading.set(false))
+      );
+  }
+
 }

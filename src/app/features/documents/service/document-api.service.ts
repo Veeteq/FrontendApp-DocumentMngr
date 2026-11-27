@@ -46,4 +46,15 @@ export class DocumentApiService {
   getDocument(documentId: number): Observable<Document> {
     return this.httpClient.get<Document>(`${this.baseUrl}/${documentId}`);
   }
+
+  searchDocuments(documentDate: string, pageNumber: number, pageSize: number, orderBy: string, orderDirection: string) {
+    const corrPageNumber = pageNumber - 1; // API is 0-based, UI is 1-based
+    const params = new HttpParams()
+      .set('documentDate', documentDate)
+      .set('pageNumber', corrPageNumber)
+      .set('pageSize', pageSize)
+      .set('orderBy', orderBy)
+      .set('orderDirection', orderDirection);
+    return this.httpClient.get<PagedResponse<Document>>(`${this.baseUrl}/search`, { params });
+  }
 }

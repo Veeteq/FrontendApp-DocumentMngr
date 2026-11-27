@@ -3,7 +3,6 @@ import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { finalize } from "rxjs";
 import { getApplicationErrorMessage } from "../../../core/auth/http-error.interceptor";
-import { NumberFormatService } from "../../../core/locale/number-format.service";
 import { ToastService } from "../../common/toast/toast.service";
 import { DocumentItemEditor } from "../common/document-item-editor/document-item-editor";
 import { DocumentItemList } from "../common/document-item-list/document-item-list";
@@ -25,7 +24,6 @@ import { extractDocumentId } from "../service/document.utils";
     FormsModule,
     Header,
     DocumentsByDate,
-    DocumentsByDate,
     OtherProperties,
     DocumentItemEditor,
     DocumentItemList
@@ -35,7 +33,6 @@ import { extractDocumentId } from "../service/document.utils";
 })
 export class MultiItemDocumentCreate implements OnInit {
   private readonly repository = inject(DocumentRepositoryService);
-  private readonly numberFormatService = inject(NumberFormatService);
   private readonly documentApi = inject(DocumentApiService);
   private readonly toastService = inject(ToastService);
   private readonly documentValidationService = inject(DocumentValidationService);
@@ -52,8 +49,8 @@ export class MultiItemDocumentCreate implements OnInit {
   readonly creating = signal(false);
 
   ngOnInit(): void {
-    const requested = this.repository.consumeDocumentDraft();
-    if (requested && this.repository.draft()) return; //DO NOT init document if document is converted from simple to standard
+    const hasPreparedDraft  = this.repository.consumePreparedDraft();
+    if (hasPreparedDraft  && this.repository.draft()) return; //DO NOT init document if document is converted from simple to standard
 
     this.repository.initDocument({});
   }
@@ -198,52 +195,6 @@ export class MultiItemDocumentCreate implements OnInit {
     this.validationErrors.set([]);
     this.repository.initDocument({});
     this.router.navigate(['/documents/list']);
-  }
-
-  getItemTotal(item: DocumentItemDraft): number {
-    return this.numberFormatService.calculateDocumentItemTotal(item.itemQuantity, item.itemPrice, item.itemType);
-  }
-
-  formatItemTotal(item: DocumentItemDraft): string {
-    return this.numberFormatService.format(this.getItemTotal(item), 2);
-  }
-
-  getDocumentTotal(): number {
-    const document = this.draft();
-    if (!document) return 0;
-
-    const total = document.documentItems.reduce((sum, item) => sum + this.getItemTotal(item), 0);
-    return this.numberFormatService.roundHalfUp(total, 2);
-  }
-
-  formatDocumentTotal(): string {
-    return this.numberFormatService.format(this.getDocumentTotal(), 2);
-  }
-
-  formatAmount(value: number | null | undefined, fractionDigits: number): string {
-    return this.numberFormatService.format(value, fractionDigits);
-  }
-
-  getItemTotalClass(item: DocumentItemDraft): string {
-    return this.numberFormatService.getTotalClass(this.getItemTotal(item));
-  }
-
-  getExpensesTotal(): number {
-    return (this.draft()?.documentItems
-      .filter((item) => item.itemType === ItemType.EXP)
-      .reduce((sum, item) => sum + this.getItemTotal(item), 0) ?? 0
-    );
-  }
-
-  getIncomesTotal(): number {
-    return (this.draft()?.documentItems
-      .filter((item) => item.itemType === ItemType.INC)
-      .reduce((sum, item) => sum + this.getItemTotal(item), 0) ?? 0
-    );
-  }
-
-  getDocumentTotalClass(): string {
-    return this.numberFormatService.getTotalClass(this.getDocumentTotal());
   }
 
   private closeDocumentItemEditor(): void {
