@@ -13,7 +13,6 @@ export class DocumentRepositoryService {
 
    /** Public read-only access to the draft */
   readonly draft = this._draft.asReadonly();
-  readonly draftDocumentReady = this._draftDocumentReady.asReadonly();
 
   /**
    * Initialize a new empty document draft.
@@ -39,6 +38,7 @@ export class DocumentRepositoryService {
       documentItems: base.documentItems ?? [],
     }
     this._draft.set(document);
+    this._draftDocumentReady.set(false);
   }
   
   /**
@@ -60,6 +60,7 @@ export class DocumentRepositoryService {
    */
   reset() {
     this._draft.set(null);
+    this._draftDocumentReady.set(false);
   }
 
   prepareDraftDocument(document: DocumentDraft) {
@@ -67,7 +68,7 @@ export class DocumentRepositoryService {
     this._draftDocumentReady.set(true);
   }
 
-  consumeDocumentDraft() {
+  consumePreparedDraft(): boolean {
     const requested = this._draftDocumentReady();
     this._draftDocumentReady.set(false);
     return requested;
